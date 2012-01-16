@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArtofKinectRecorder", "ArtofKinectRecorder\ArtofKinectRecorder.csproj", "{FECAFD16-2910-4B18-8207-5135C2A17422}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArtofKinect.Common", "ArtofKinect.Common\ArtofKinect.Common.csproj", "{ABF76E36-6643-441D-9B58-4AD278A731AF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FECAFD16-2910-4B18-8207-5135C2A17422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FECAFD16-2910-4B18-8207-5135C2A17422}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FECAFD16-2910-4B18-8207-5135C2A17422}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FECAFD16-2910-4B18-8207-5135C2A17422}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABF76E36-6643-441D-9B58-4AD278A731AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABF76E36-6643-441D-9B58-4AD278A731AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABF76E36-6643-441D-9B58-4AD278A731AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABF76E36-6643-441D-9B58-4AD278A731AF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
