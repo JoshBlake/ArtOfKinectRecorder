@@ -24,6 +24,7 @@ using System.IO;
 using ArtofKinect.Common;
 using System.Windows.Threading;
 using System.Threading;
+using ArtofKinectRecorder.Views;
 
 namespace ArtofKinectRecorder
 {
@@ -34,7 +35,10 @@ namespace ArtofKinectRecorder
     {
         #region Fields
 
-        KinectSdkDevice device;
+        KinectSdkDevice sensorDevice;
+
+        RawFrameViewer rawFrameViewer;
+        PointCloudFrameViewer pointCloudFrameViewer;
 
         double fps;
         int fpsCount;
@@ -58,6 +62,34 @@ namespace ArtofKinectRecorder
 
         #endregion
 
+        #region Properties
+        
+        private IFrameViewer _currentFrameViewer;
+        public IFrameViewer CurrentFrameViewer
+        {
+            get
+            {
+                return _currentFrameViewer;
+            }
+            set
+            {
+                if (_currentFrameViewer != null)
+                {
+                    _currentFrameViewer.Deactivate();
+                }
+
+                _currentFrameViewer = value;
+
+                if (_currentFrameViewer != null)
+                {
+                    _currentFrameViewer.Activate(sensorDevice);
+                }
+                FrameViewerHost.Content = _currentFrameViewer;
+            }
+        }
+
+        #endregion
+
         #region Constructors
 
         public ArtofKinectRecorderWindow()
@@ -71,10 +103,13 @@ namespace ArtofKinectRecorder
             InitSensor();
             InitSerializer();
             InitSoundCapture();
+            CreateViews();
             lastFPSCheck = DateTime.Now;
 
             Application.Current.Exit += (s, e) =>
             {
+                this.CurrentFrameViewer = null;
+                pointCloudFrameViewer.pointCloudImage.Dispose();
                 if (playerSource != null)
                 {
                     playerSource.Dispose();
@@ -87,10 +122,10 @@ namespace ArtofKinectRecorder
                     soundRecording.Dispose();
                     soundRecording = null;
                 }
-                if (device != null)
+                if (sensorDevice != null)
                 {
-                    device.Dispose();
-                    device = null;
+                    sensorDevice.Dispose();
+                    sensorDevice = null;
                 }
                 if (frameQueue != null)
                 {
@@ -103,6 +138,30 @@ namespace ArtofKinectRecorder
         #endregion
 
         #region Private Methods
+
+        private void CreateViews()
+        {
+            rawFrameViewer = new RawFrameViewer();
+            pointCloudFrameViewer = new PointCloudFrameViewer();
+
+            CurrentFrameViewer = pointCloudFrameViewer;
+        }
+
+        private void UpdateFrameViewer(MotionSensorDevice device, MotionFrame frame)
+        {
+            if (CurrentFrameViewer != null)
+            {
+                CurrentFrameViewer.UpdateMotionFrame(device, frame);
+            }
+        }
+
+        private void ClearFrameViewer(MotionFrame frame)
+        {
+            if (CurrentFrameViewer != null)
+            {
+                CurrentFrameViewer.Clear();
+            }
+        }
 
         private void InitSoundCapture()
         {
@@ -127,13 +186,13 @@ namespace ArtofKinectRecorder
         private void InitSensor()
         {
             //device = MotionSensorDeviceFactory.GetAndInitializeDevice();
-            device = new KinectSdkDevice();
+            sensorDevice = new KinectSdkDevice();
             var config = new DeviceConfiguration();
             config.DepthBufferFormat = DepthBufferFormats.Format320X240X16;
             config.VideoBufferFormat = ImageBufferFormats.Format640X480X32;
-            device.Initialize(config);
-            device.SetTiltAngle(10);
-            device.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+            sensorDevice.Initialize(config);
+            sensorDevice.SetTiltAngle(10);
+            sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
                         
         }
 
@@ -188,9 +247,7 @@ namespace ArtofKinectRecorder
             }
             lastFrame = frame;
 
-            ProcessDepthFrame(frame.DepthFrame, frame.UserFrame);
-            ProcessRgbFrame(frame.RGBFrame);
-            ProcessSkeletonFrame(frame.Skeletons, frame.DepthFrame.Width, frame.DepthFrame.Height);
+            UpdateFrameViewer(sensorDevice, frame);
 
             bool newIsRecordingOn = cbxRecord.IsChecked.Value;
             if (!isRecordingOn && newIsRecordingOn)
@@ -262,22 +319,7 @@ namespace ArtofKinectRecorder
             savedFrameId = frame.Id;
             DisplayFrame(frame);
         }
-
-        private void ProcessRgbFrame(FrameBuffer rgb)
-        {
-            rgbImage.Source = rgb.AsRgbBitmapSource();
-        }
-
-        private void ProcessDepthFrame(FrameBuffer depth, FrameBuffer user)
-        {
-            depthImage.Source = depth.AsDepthUserBitmapSource(user);
-        }
-
-        private void ProcessSkeletonFrame(IEnumerable<Skeleton> skeletons, int width, int height)
-        {
-            skeletonImage.Source = skeletons.AsSkeletonBitmapSource(device, width, height);
-        }
-
+        
         private void StartRecording()
         {
             soundRecording.Start();

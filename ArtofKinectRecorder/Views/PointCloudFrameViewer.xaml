@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="ArtofKinectRecorder.Views.PointCloudFrameViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:pc="clr-namespace:InfoStrat.MotionFx.PointCloud;assembly=InfoStrat.MotionFx.PointCloud"
+             mc:Ignorable="d">
+    <Grid VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <pc:PointCloudImage x:Name="pointCloudImage"
+                                VerticalAlignment="Top" />
+        </Grid>
+    </Grid>
+</UserControl>

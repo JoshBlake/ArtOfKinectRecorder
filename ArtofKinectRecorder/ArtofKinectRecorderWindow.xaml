@@ -2,87 +2,86 @@
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:s="http://schemas.microsoft.com/surface/2008"
-                 Title="The Art of Kinect Recorder">
-    <Grid>
-        <s:SurfaceScrollViewer>
-            <Grid>
-                <StackPanel>
-                    <Viewbox Stretch="Uniform"
-                             MaxWidth="1280"
-                             MaxHeight="480">
-                        <StackPanel Orientation="Horizontal">
-                            <Canvas Width="320"
-                                    Height="240">
-                                <Image Name="depthImage"
-                                       Width="320"
-                                       Height="240" />
-                                <Image Name="skeletonImage"
-                                       Width="320"
-                                       Height="240" />
-                            </Canvas>
-                            <Image Name="rgbImage"
-                                   Width="320"
-                                   Height="240" />
-                        </StackPanel>
-                    </Viewbox>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="10">
-                            <TextBlock Name="txtFPS"
-                                       FontSize="36" />
-                            <TextBlock Name="txtSizeDepth"
-                                       FontSize="24" />
-                            <TextBlock Name="txtSizeAll"
-                                       Margin="0,10"
-                                       FontSize="24" />
-                            <TextBlock Name="txtFrameId"
-                                       Margin="0,10"
-                                       FontSize="24" />
-                        </StackPanel>
+                 Title="The Art of Kinect Recorder"
+                 WindowState="Maximized"
+                 ResizeMode="NoResize"
+                 WindowStyle="None">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70" />
+            <RowDefinition Height="10" />
+            <RowDefinition />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="200" />
+        </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Column="1">
-                            <StackPanel Orientation="Horizontal">
-                                <s:SurfaceCheckBox Content="Record"
-                                                   Margin="10"
-                                                   Name="cbxRecord" />
+        <Grid Grid.Row="0"
+              Background="SkyBlue">
+            <TextBlock Text="Art of Kinect - Frame Recorder"
+                       Margin="10"
+                       Foreground="Black"
+                       FontSize="36"
+                       FontWeight="Bold"
+                       FontFamily="Segoe360" />
+        </Grid>
+        <ContentControl x:Name="FrameViewerHost"
+                        Grid.Row="2" />
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="10">
+                <TextBlock Name="txtFPS"
+                           FontSize="36" />
+                <TextBlock Name="txtSizeDepth"
+                           FontSize="24" />
+                <TextBlock Name="txtSizeAll"
+                           Margin="0,10"
+                           FontSize="24" />
+                <TextBlock Name="txtFrameId"
+                           Margin="0,10"
+                           FontSize="24" />
+            </StackPanel>
 
-                                <s:SurfaceButton Content="Play recording"
-                                                 Name="btnPlayRecording"
-                                                 Margin="10"
-                                                 Width="130"
-                                                 Height="40"
-                                                 Click="btnPlayRecording_Click" />
-                                <s:SurfaceButton Content="Save Frame"
-                                                 Name="btnSaveFrame"
-                                                 Margin="10"
-                                                 Width="130"
-                                                 Height="40"
-                                                 Click="btnSaveFrame_Click" />
-                                <s:SurfaceButton Content="Load Frame"
-                                                 Margin="10"
-                                                 Width="130"
-                                                 Height="40"
-                                                 Name="btnLoadFrame"
-                                                 Click="btnLoadFrame_Click" />
-                                <s:SurfaceButton Content="Clear"
-                                                 Width="130"
-                                                 Height="40"
-                                                 Margin="10"
-                                                 Name="btnClear"
-                                                 Click="btnClear_Click" />
-                            </StackPanel>
-                            <s:SurfaceTextBox Text="0frame.mfx"
-                                              Width="200"
-                                              Height="32"
-                                              HorizontalAlignment="Left"
-                                              Name="tbxFilename" />
-                        </StackPanel>
-                    </Grid>
+            <StackPanel Grid.Column="1">
+                <StackPanel Orientation="Horizontal">
+                    <s:SurfaceCheckBox Content="Record"
+                                       Margin="10"
+                                       Name="cbxRecord" />
+
+                    <s:SurfaceButton Content="Play recording"
+                                     Name="btnPlayRecording"
+                                     Margin="10"
+                                     Width="130"
+                                     Height="40"
+                                     Click="btnPlayRecording_Click" />
+                    <s:SurfaceButton Content="Save Frame"
+                                     Name="btnSaveFrame"
+                                     Margin="10"
+                                     Width="130"
+                                     Height="40"
+                                     Click="btnSaveFrame_Click" />
+                    <s:SurfaceButton Content="Load Frame"
+                                     Margin="10"
+                                     Width="130"
+                                     Height="40"
+                                     Name="btnLoadFrame"
+                                     Click="btnLoadFrame_Click" />
+                    <s:SurfaceButton Content="Clear"
+                                     Width="130"
+                                     Height="40"
+                                     Margin="10"
+                                     Name="btnClear"
+                                     Click="btnClear_Click" />
                 </StackPanel>
-            </Grid>
-        </s:SurfaceScrollViewer>
+                <s:SurfaceTextBox Text="0frame.mfx"
+                                  Width="200"
+                                  Height="32"
+                                  HorizontalAlignment="Left"
+                                  Name="tbxFilename" />
+            </StackPanel>
+        </Grid>
+
     </Grid>
 </s:SurfaceWindow>
