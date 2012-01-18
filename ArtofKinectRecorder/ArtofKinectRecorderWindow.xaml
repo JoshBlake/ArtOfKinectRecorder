@@ -24,8 +24,13 @@
                        FontWeight="Bold"
                        FontFamily="Segoe360" />
         </Grid>
-        <ContentControl x:Name="FrameViewerHost"
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="2">
+            <ContentControl x:Name="FrameViewerHost"
                         Grid.Row="2" />
+            <ContentControl x:Name="FrameViewerHost2"
+                            Grid.Row="2" />
+        </StackPanel>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
