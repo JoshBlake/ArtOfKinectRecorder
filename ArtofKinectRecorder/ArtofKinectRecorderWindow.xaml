@@ -8,7 +8,7 @@
                  WindowStyle="None">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="70" />
+            <RowDefinition Height="50" />
             <RowDefinition Height="10" />
             <RowDefinition />
             <RowDefinition Height="10" />
@@ -17,10 +17,10 @@
 
         <Grid Grid.Row="0"
               Background="SkyBlue">
-            <TextBlock Text="Art of Kinect - Frame Recorder"
+            <TextBlock Text="Art of Kinect - Point Cloud Recorder"
                        Margin="10"
                        Foreground="Black"
-                       FontSize="36"
+                       FontSize="24"
                        FontWeight="Bold"
                        FontFamily="Segoe360" />
         </Grid>
