@@ -39,7 +39,7 @@ namespace ArtofKinectRecorder
 
         RawFrameViewer rawFrameViewer;
         PointCloudFrameViewer pointCloudFrameViewer;
-        PointCloudFrameViewer pointCloudFrameViewer2;
+        //PointCloudFrameViewer pointCloudFrameViewer2;
 
         double fps;
         int fpsCount;
@@ -111,8 +111,8 @@ namespace ArtofKinectRecorder
             {
                 this.CurrentFrameViewer = null;
                 pointCloudFrameViewer.pointCloudImage.Dispose();
-                pointCloudFrameViewer2.Deactivate();
-                pointCloudFrameViewer2.pointCloudImage.Dispose();
+                //pointCloudFrameViewer2.Deactivate();
+                //pointCloudFrameViewer2.pointCloudImage.Dispose();
                 if (playerSource != null)
                 {
                     playerSource.Dispose();
@@ -146,13 +146,13 @@ namespace ArtofKinectRecorder
         {
             rawFrameViewer = new RawFrameViewer();
             pointCloudFrameViewer = new PointCloudFrameViewer();
-            pointCloudFrameViewer2 = new PointCloudFrameViewer();
-            pointCloudFrameViewer.Width = 400;
+            //pointCloudFrameViewer2 = new PointCloudFrameViewer();
+            pointCloudFrameViewer.Width = 800;
             pointCloudFrameViewer.Height = 400;
-            pointCloudFrameViewer2.Width = 400;
-            pointCloudFrameViewer2.Height = 400;
-            pointCloudFrameViewer2.Activate(sensorDevice);
-            FrameViewerHost2.Content = pointCloudFrameViewer2;
+            //pointCloudFrameViewer2.Width = 400;
+            //pointCloudFrameViewer2.Height = 400;
+            //pointCloudFrameViewer2.Activate(sensorDevice);
+            //FrameViewerHost2.Content = pointCloudFrameViewer2;
             CurrentFrameViewer = pointCloudFrameViewer;
         }
 
@@ -201,9 +201,8 @@ namespace ArtofKinectRecorder
             config.DepthBufferFormat = DepthBufferFormats.Format320X240X16;
             config.VideoBufferFormat = ImageBufferFormats.Format640X480X32;
             sensorDevice.Initialize(config);
-            sensorDevice.SetTiltAngle(10);
+            sensorDevice.SetTiltAngle(0);
             sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
-                        
         }
 
         void playerSource_MotionFrameAvailable(object sender, MotionFrameAvailableEventArgs e)
@@ -215,10 +214,10 @@ namespace ArtofKinectRecorder
         void device_CompositeFrameAvailable(object sender, CompositeFrameAvailableEventArgs e)
         {
             frameQueue.AddWork(e.MotionFrame);
-            if (pointCloudFrameViewer2 != null)
-            {
-                pointCloudFrameViewer2.UpdateMotionFrame(sensorDevice, e.MotionFrame);
-            }
+            //if (pointCloudFrameViewer2 != null)
+            //{
+            //    pointCloudFrameViewer2.UpdateMotionFrame(sensorDevice, e.MotionFrame);
+            //}
             if (isShowingSavedFrame)
             {
                 return;
@@ -342,7 +341,7 @@ namespace ArtofKinectRecorder
         {
             soundRecording.Stop();
             Thread.Sleep(100);
-            playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
+            //playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
         }
 
         private void StartPlayback()
@@ -383,5 +382,17 @@ namespace ArtofKinectRecorder
         }
 
         #endregion
+
+        private void btnSwitchViewer_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentFrameViewer == pointCloudFrameViewer)
+            {
+                CurrentFrameViewer = rawFrameViewer;
+            }
+            else
+            {
+                CurrentFrameViewer = pointCloudFrameViewer;
+            }
+        }
     }
 }

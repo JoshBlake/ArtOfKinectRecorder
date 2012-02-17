@@ -132,6 +132,11 @@ namespace ArtofKinect.Common
         {
             Reset();
 
+            if (!Directory.Exists("Recording/"))
+            {
+                Directory.CreateDirectory("Recording/");
+            }
+
             _soundPlayer.Load(audioFilename);
             
             IEnumerable<string> files = Directory.EnumerateFiles("Recording/", "frame*.mfx");

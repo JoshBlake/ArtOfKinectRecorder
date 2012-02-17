@@ -28,8 +28,6 @@
                     Grid.Row="2">
             <ContentControl x:Name="FrameViewerHost"
                         Grid.Row="2" />
-            <ContentControl x:Name="FrameViewerHost2"
-                            Grid.Row="2" />
         </StackPanel>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
@@ -85,6 +83,9 @@
                                   Height="32"
                                   HorizontalAlignment="Left"
                                   Name="tbxFilename" />
+                <s:SurfaceButton Content="Switch viewer"
+                                 Name="btnSwitchViewer"
+                                 Click="btnSwitchViewer_Click" />
             </StackPanel>
         </Grid>
 

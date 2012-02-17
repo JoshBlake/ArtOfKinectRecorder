@@ -158,7 +158,6 @@ namespace ArtofKinect.Common
             if (kinectSource != null)
             {
                 kinectSource.Stop();
-                kinectSource.Dispose();
                 kinectSource = null;
             }
             if (energyStream != null)

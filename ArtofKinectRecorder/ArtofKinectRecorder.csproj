@@ -66,35 +66,26 @@
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Blake.NUI.WPF">
-      <HintPath>..\external\Blake.NUI.WPF.dll</HintPath>
-    </Reference>
-    <Reference Include="DirectCanvas, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\external\DirectCanvas.dll</HintPath>
-    </Reference>
-    <Reference Include="DirectShowLib-2005, Version=2.0.0.0, Culture=neutral, PublicKeyToken=67e7b740cdfc2d3f, processorArchitecture=MSIL">
-      <HintPath>..\external\DirectShowLib-2005.dll</HintPath>
-    </Reference>
     <Reference Include="InfoStrat.MotionFx">
-      <HintPath>..\external\InfoStrat.MotionFx.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Core">
-      <HintPath>..\external\InfoStrat.MotionFx.Core.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Core.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Devices.Kinect">
-      <HintPath>..\external\InfoStrat.MotionFx.Devices.Kinect.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.Kinect.dll</HintPath>
+    </Reference>
+    <Reference Include="InfoStrat.MotionFx.Devices.OpenNi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.OpenNi.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Network">
-      <HintPath>..\external\InfoStrat.MotionFx.Network.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Network.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.PointCloud">
-      <HintPath>..\external\InfoStrat.MotionFx.PointCloud.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Wpf">
-      <HintPath>..\external\InfoStrat.MotionFx.Wpf.dll</HintPath>
-    </Reference>
-    <Reference Include="SlimDX, Version=4.0.10.43, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\external\SlimDX.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
