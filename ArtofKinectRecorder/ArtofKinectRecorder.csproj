@@ -67,25 +67,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="InfoStrat.MotionFx">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Core">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Core.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Core.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Devices.Kinect">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.Kinect.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.Kinect.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Devices.OpenNi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.OpenNi.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Devices.OpenNi.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Network">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Network.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Network.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.PointCloud">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Wpf">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Wpf.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

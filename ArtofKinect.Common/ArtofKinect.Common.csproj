@@ -32,13 +32,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="InfoStrat.MotionFx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Core.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.Core.dll</HintPath>
     </Reference>
     <Reference Include="InfoStrat.MotionFx.PointCloud, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Kinect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="NAudio">
