@@ -55,6 +55,7 @@ namespace ArtofKinectRecorder.Views
             {
                 pointCloudImage.StartRendering();
             }
+            pointCloudImage.Visibility = System.Windows.Visibility.Visible;
         }
 
         public void Deactivate()

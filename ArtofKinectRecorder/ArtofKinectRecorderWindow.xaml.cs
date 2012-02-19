@@ -185,7 +185,7 @@ namespace ArtofKinectRecorder
             serializer.UsersOnly = false;
             serializer.DownSize640to320 = false;
             serializer.IncludeUserFrame = true;
-            serializer.CompressionQuality = InfoStrat.MotionFx.PointCloud.CompressionQuality.Medium;
+            serializer.CompressionQuality = InfoStrat.MotionFx.PointCloud.CompressionQuality.High;
 
             playerSource = new PointCloudPlayerSource(serializer);
             playerSource.MotionFrameAvailable += new EventHandler<MotionFrameAvailableEventArgs>(playerSource_MotionFrameAvailable);
@@ -195,7 +195,6 @@ namespace ArtofKinectRecorder
 
         private void InitSensor()
         {
-            //device = MotionSensorDeviceFactory.GetAndInitializeDevice();
             sensorDevice = new KinectSdkDevice();
             var config = new DeviceConfiguration();
             config.DepthBufferFormat = DepthBufferFormats.Format320X240X16;
