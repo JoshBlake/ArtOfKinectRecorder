@@ -41,6 +41,8 @@ namespace ArtofKinectRecorder
         PointCloudFrameViewer pointCloudFrameViewer;
         //PointCloudFrameViewer pointCloudFrameViewer2;
 
+        DeviceConfiguration currentConfiguration;
+
         double fps;
         int fpsCount;
         DateTime lastFPSCheck;
@@ -83,7 +85,7 @@ namespace ArtofKinectRecorder
 
                 if (_currentFrameViewer != null)
                 {
-                    _currentFrameViewer.Activate(sensorDevice);
+                    _currentFrameViewer.Activate(currentConfiguration);
                 }
                 FrameViewerHost.Content = _currentFrameViewer;
             }
@@ -156,12 +158,16 @@ namespace ArtofKinectRecorder
             CurrentFrameViewer = pointCloudFrameViewer;
         }
 
-        private void UpdateFrameViewer(MotionSensorDevice device, MotionFrame frame)
+        private void UpdateFrameViewer(MotionFrame frame)
         {
             if (CurrentFrameViewer != null)
             {
-                CurrentFrameViewer.UpdateMotionFrame(device, frame);
-                
+                currentConfiguration = new DeviceConfiguration()
+                    {
+                        DepthBufferFormat = new BufferFormat(frame.DepthFrame.Width, frame.DepthFrame.Height, frame.DepthFrame.PixelFormat),
+                        VideoBufferFormat = new BufferFormat(frame.RGBFrame.Width, frame.RGBFrame.Height, frame.RGBFrame.PixelFormat),
+                    };
+                CurrentFrameViewer.UpdateMotionFrame(currentConfiguration, frame);                
             }
         }
 
@@ -196,12 +202,21 @@ namespace ArtofKinectRecorder
         private void InitSensor()
         {
             sensorDevice = new KinectSdkDevice();
+            sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+
             var config = new DeviceConfiguration();
-            config.DepthBufferFormat = DepthBufferFormats.Format320X240X16;
-            config.VideoBufferFormat = ImageBufferFormats.Format640X480X32;
+            config.DepthBufferFormat = DepthBufferFormats.Format640X480X16;
+            config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
+            currentConfiguration = config;
             sensorDevice.Initialize(config);
             sensorDevice.SetTiltAngle(0);
-            sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+        }
+
+        private void StopSensor()
+        {
+            sensorDevice.CompositeFrameAvailable -= new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+            sensorDevice.Shutdown();
+            sensorDevice = null;
         }
 
         void playerSource_MotionFrameAvailable(object sender, MotionFrameAvailableEventArgs e)
@@ -237,11 +252,8 @@ namespace ArtofKinectRecorder
             else
             {
                 lastSizeDepth = frame.DepthFrame.Data.Length;
-                int originalPlayerIndexSize = 0;
-                if (frame.UserFrame != null)
-                    originalPlayerIndexSize = frame.UserFrame.Data.Length;
                 int originalRGBSize = frame.RGBFrame.Data.Length;
-                lastSizeAll = lastSizeDepth + originalRGBSize + originalPlayerIndexSize;
+                lastSizeAll = lastSizeDepth + originalRGBSize;
             }
 
         }
@@ -258,7 +270,7 @@ namespace ArtofKinectRecorder
             }
             lastFrame = frame;
 
-            UpdateFrameViewer(sensorDevice, frame);
+            UpdateFrameViewer(frame);
 
             bool newIsRecordingOn = cbxRecord.IsChecked.Value;
             if (!isRecordingOn && newIsRecordingOn)
@@ -281,15 +293,13 @@ namespace ArtofKinectRecorder
         private void UpdateCompressionSizes(MotionFrame frame)
         {
             int originalDepthSize = frame.DepthFrame.Data.Length;
-            int originalPlayerIndexSize = 0;
-            if (frame.UserFrame != null)
-                originalPlayerIndexSize = frame.UserFrame.Data.Length;
+            
             int originalRGBSize = frame.RGBFrame.Data.Length;
 
             double ratio = originalDepthSize / (double)lastSizeDepth;
             txtSizeDepth.Text = "Depth: " + lastSizeDepth.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
 
-            int totalSize = originalDepthSize + originalRGBSize + originalPlayerIndexSize;
+            int totalSize = originalDepthSize + originalRGBSize;
 
             ratio = totalSize / (double)lastSizeAll;
             txtSizeAll.Text = "All: " + lastSizeAll.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
@@ -345,6 +355,8 @@ namespace ArtofKinectRecorder
 
         private void StartPlayback()
         {
+            StopSensor();
+
             isShowingSavedFrame = true;
 
             if (playerSource.Status == PointCloudPlayerStatus.NotLoaded)
@@ -373,6 +385,13 @@ namespace ArtofKinectRecorder
         private void btnClear_Click(object sender, RoutedEventArgs e)
         {
             isShowingSavedFrame = false;
+
+            playerSource.Stop();
+
+            if (sensorDevice == null)
+            {
+                InitSensor();
+            }
         }
 
         private void btnPlayRecording_Click(object sender, RoutedEventArgs e)

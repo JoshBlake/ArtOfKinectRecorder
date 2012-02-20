@@ -9,9 +9,9 @@ namespace ArtofKinectRecorder.Views
 {
     public interface IFrameViewer
     {
-        void UpdateMotionFrame(MotionSensorDevice device, MotionFrame frame);
+        void UpdateMotionFrame(DeviceConfiguration config, MotionFrame frame);
 
-        void Activate(MotionSensorDevice device);
+        void Activate(DeviceConfiguration config);
         void Deactivate();
         void Clear();
     }

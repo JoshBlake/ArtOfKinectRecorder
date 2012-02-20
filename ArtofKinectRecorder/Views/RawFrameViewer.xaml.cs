@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using InfoStrat.MotionFx;
 using InfoStrat.MotionFx.Wpf;
 using InfoStrat.MotionFx.Devices;
+using InfoStrat.MotionFx.ImageProcessing;
 
 namespace ArtofKinectRecorder.Views
 {
@@ -22,6 +23,12 @@ namespace ArtofKinectRecorder.Views
     /// </summary>
     public partial class RawFrameViewer : UserControl, IFrameViewer
     {
+        #region Fields
+
+        ImageProcessorContext imageContext;
+        SensorImageProcessor sensorImage;
+        #endregion
+        
         #region Constructors
 
         public RawFrameViewer()
@@ -33,36 +40,49 @@ namespace ArtofKinectRecorder.Views
 
         #region IMotionFrameViewer Implementation
 
-        public void UpdateMotionFrame(MotionSensorDevice device, MotionFrame frame)
+        public void UpdateMotionFrame(DeviceConfiguration config, MotionFrame frame)
         {
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
-                    UpdateMotionFrame(device, frame);
+                    UpdateMotionFrame(config, frame);
                 });
                 return;
             }
-            
-            depthImage.Source = frame.DepthFrame.AsDepthUserBitmapSource(frame.UserFrame);
-            rgbImage.Source = frame.RGBFrame.AsRgbBitmapSource();
-            skeletonImage.Source = frame.Skeletons.AsSkeletonBitmapSource(device, frame.DepthFrame.Width, frame.DepthFrame.Height);
 
+            sensorImage.ProcessDepthFrame(frame.DepthFrame);
+            depthImage.Source = sensorImage.DepthImageSource;
+            rgbImage.Source = frame.RGBFrame.AsRgbBitmapSource();
+            skeletonImage.Source = frame.Skeletons.AsSkeletonBitmapSource(frame.DepthFrame.Width, frame.DepthFrame.Height);
         }
 
-        public void Activate(MotionSensorDevice device)
+        public void Activate(DeviceConfiguration config)
         {
-
+            imageContext = new ImageProcessorContext();
+            sensorImage = new SensorImageProcessor(imageContext);
         }
 
         public void Deactivate()
         {
-
+            if (imageContext != null)
+            {
+                imageContext.Dispose();
+                imageContext = null;
+            }
+            if (sensorImage != null)
+            {
+                sensorImage.Dispose();
+                sensorImage = null;
+            }
+            depthImage.Source = null;
+            rgbImage.Source = null;
         }
 
         public void Clear()
         {
-
+            depthImage.Source = null;
+            rgbImage.Source = null;
         }
 
         #endregion

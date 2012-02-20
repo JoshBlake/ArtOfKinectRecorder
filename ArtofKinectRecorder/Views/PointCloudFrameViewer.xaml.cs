@@ -30,27 +30,27 @@ namespace ArtofKinectRecorder.Views
 
         #region IMotionFrameViewer Implementation
 
-        public void UpdateMotionFrame(MotionSensorDevice device, MotionFrame frame)
+        public void UpdateMotionFrame(DeviceConfiguration config, MotionFrame frame)
         {
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
-                    UpdateMotionFrame(device, frame);
+                    UpdateMotionFrame(config, frame);
                 });
                 return;
             }
 
             if (!pointCloudImage.IsInitialized)
             {
-                Activate(device);
+                Activate(config);
             }
             pointCloudImage.SetMotionFrame(frame);
         }
 
-        public void Activate(MotionSensorDevice device)
+        public void Activate(DeviceConfiguration config)
         {
-            pointCloudImage.Init(device.Configuration);            
+            pointCloudImage.Init(config);            
             if (!pointCloudImage.IsRenderingActive)
             {
                 pointCloudImage.StartRendering();
