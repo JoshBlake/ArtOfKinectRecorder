@@ -98,7 +98,7 @@ namespace ArtofKinectRecorder
         public ArtofKinectRecorderWindow()
         {
             InitializeComponent();
-
+            
             frameQueue = new WorkQueue<MotionFrame>();
             frameQueue.Callback = ProcessFrame;
             frameQueue.MaxQueueLength = 5;
@@ -181,6 +181,7 @@ namespace ArtofKinectRecorder
 
         private void InitSoundCapture()
         {
+            return;
             soundRecording = new SoundRecording();
         }
         
@@ -201,22 +202,26 @@ namespace ArtofKinectRecorder
 
         private void InitSensor()
         {
-            sensorDevice = new KinectSdkDevice();
-            sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
-
             var config = new DeviceConfiguration();
             config.DepthBufferFormat = DepthBufferFormats.Format640X480X16;
             config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
             currentConfiguration = config;
+            return;
+            sensorDevice = new KinectSdkDevice();
+            sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+
             sensorDevice.Initialize(config);
             sensorDevice.SetTiltAngle(0);
         }
 
         private void StopSensor()
         {
-            sensorDevice.CompositeFrameAvailable -= new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
-            sensorDevice.Shutdown();
-            sensorDevice = null;
+            if (sensorDevice != null)
+            {
+                sensorDevice.CompositeFrameAvailable -= new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
+                sensorDevice.Shutdown();
+                sensorDevice = null;
+            }
         }
 
         void playerSource_MotionFrameAvailable(object sender, MotionFrameAvailableEventArgs e)
@@ -272,7 +277,7 @@ namespace ArtofKinectRecorder
 
             UpdateFrameViewer(frame);
 
-            bool newIsRecordingOn = cbxRecord.IsChecked.Value;
+            bool newIsRecordingOn = false;// cbxRecord.IsChecked.Value;
             if (!isRecordingOn && newIsRecordingOn)
             {
                 StartRecording();
@@ -297,12 +302,12 @@ namespace ArtofKinectRecorder
             int originalRGBSize = frame.RGBFrame.Data.Length;
 
             double ratio = originalDepthSize / (double)lastSizeDepth;
-            txtSizeDepth.Text = "Depth: " + lastSizeDepth.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
+            //txtSizeDepth.Text = "Depth: " + lastSizeDepth.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
 
             int totalSize = originalDepthSize + originalRGBSize;
 
             ratio = totalSize / (double)lastSizeAll;
-            txtSizeAll.Text = "All: " + lastSizeAll.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
+            //txtSizeAll.Text = "All: " + lastSizeAll.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
             txtFrameId.Text = savedFrameId.ToString();
 
         }
@@ -370,18 +375,6 @@ namespace ArtofKinectRecorder
 
         #region Interaction
         
-        private void btnSaveFrame_Click(object sender, RoutedEventArgs e)
-        {
-            string filename = "Recording/" + tbxFilename.Text;
-            SaveFrame(lastFrame, filename);
-        }
-
-        private void btnLoadFrame_Click(object sender, RoutedEventArgs e)
-        {
-            string filename = "Recording/" + tbxFilename.Text;
-            LoadFrame(filename);
-        }
-
         private void btnClear_Click(object sender, RoutedEventArgs e)
         {
             isShowingSavedFrame = false;
@@ -397,6 +390,12 @@ namespace ArtofKinectRecorder
         private void btnPlayRecording_Click(object sender, RoutedEventArgs e)
         {
             StartPlayback();
+        }
+
+        private void btnExit_Click(object sender, RoutedEventArgs e)
+        {
+            StopSensor();
+            this.Close();
         }
 
         #endregion

@@ -40,7 +40,7 @@ namespace ArtofKinectRecorder.Views
                 });
                 return;
             }
-
+            
             if (!pointCloudImage.IsInitialized)
             {
                 Activate(config);
