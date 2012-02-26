@@ -35,12 +35,9 @@ namespace ArtofKinectRecorder
     {
         #region Fields
 
+        bool isPlaying = false;
         KinectSdkDevice sensorDevice;
-
-        RawFrameViewer rawFrameViewer;
-        PointCloudFrameViewer pointCloudFrameViewer;
-        //PointCloudFrameViewer pointCloudFrameViewer2;
-
+        
         DeviceConfiguration currentConfiguration;
 
         double fps;
@@ -66,31 +63,7 @@ namespace ArtofKinectRecorder
         #endregion
 
         #region Properties
-        
-        private IFrameViewer _currentFrameViewer;
-        public IFrameViewer CurrentFrameViewer
-        {
-            get
-            {
-                return _currentFrameViewer;
-            }
-            set
-            {
-                if (_currentFrameViewer != null)
-                {
-                    _currentFrameViewer.Deactivate();
-                }
-
-                _currentFrameViewer = value;
-
-                if (_currentFrameViewer != null)
-                {
-                    _currentFrameViewer.Activate(currentConfiguration);
-                }
-                FrameViewerHost.Content = _currentFrameViewer;
-            }
-        }
-
+       
         #endregion
 
         #region Constructors
@@ -99,6 +72,8 @@ namespace ArtofKinectRecorder
         {
             InitializeComponent();
             
+            UpdatePlayPauseIconVisibility();
+
             frameQueue = new WorkQueue<MotionFrame>();
             frameQueue.Callback = ProcessFrame;
             frameQueue.MaxQueueLength = 5;
@@ -106,12 +81,13 @@ namespace ArtofKinectRecorder
             InitSensor();
             InitSerializer();
             InitSoundCapture();
-            CreateViews();
+            pointCloudFrameViewer.Activate(currentConfiguration);
+
             lastFPSCheck = DateTime.Now;
 
             Application.Current.Exit += (s, e) =>
             {
-                this.CurrentFrameViewer = null;
+                
                 pointCloudFrameViewer.pointCloudImage.Dispose();
                 //pointCloudFrameViewer2.Deactivate();
                 //pointCloudFrameViewer2.pointCloudImage.Dispose();
@@ -144,38 +120,16 @@ namespace ArtofKinectRecorder
 
         #region Private Methods
 
-        private void CreateViews()
-        {
-            rawFrameViewer = new RawFrameViewer();
-            pointCloudFrameViewer = new PointCloudFrameViewer();
-            //pointCloudFrameViewer2 = new PointCloudFrameViewer();
-            pointCloudFrameViewer.Width = 800;
-            pointCloudFrameViewer.Height = 400;
-            //pointCloudFrameViewer2.Width = 400;
-            //pointCloudFrameViewer2.Height = 400;
-            //pointCloudFrameViewer2.Activate(sensorDevice);
-            //FrameViewerHost2.Content = pointCloudFrameViewer2;
-            CurrentFrameViewer = pointCloudFrameViewer;
-        }
-
         private void UpdateFrameViewer(MotionFrame frame)
         {
-            if (CurrentFrameViewer != null)
+            if (pointCloudFrameViewer != null)
             {
                 currentConfiguration = new DeviceConfiguration()
                     {
                         DepthBufferFormat = new BufferFormat(frame.DepthFrame.Width, frame.DepthFrame.Height, frame.DepthFrame.PixelFormat),
                         VideoBufferFormat = new BufferFormat(frame.RGBFrame.Width, frame.RGBFrame.Height, frame.RGBFrame.PixelFormat),
                     };
-                CurrentFrameViewer.UpdateMotionFrame(currentConfiguration, frame);                
-            }
-        }
-
-        private void ClearFrameViewer(MotionFrame frame)
-        {
-            if (CurrentFrameViewer != null)
-            {
-                CurrentFrameViewer.Clear();
+                pointCloudFrameViewer.UpdateMotionFrame(currentConfiguration, frame);                
             }
         }
 
@@ -370,6 +324,12 @@ namespace ArtofKinectRecorder
             }
             playerSource.Play();
         }
+        
+        private void StopPlayback()
+        {
+            playerSource.Stop();
+        }
+
 
         #endregion
 
@@ -387,9 +347,32 @@ namespace ArtofKinectRecorder
             }
         }
 
-        private void btnPlayRecording_Click(object sender, RoutedEventArgs e)
+        private void btnPlayPause_Click(object sender, RoutedEventArgs e)
         {
-            StartPlayback();
+            isPlaying = !isPlaying;
+            if (isPlaying)
+            {                
+                StartPlayback();
+            }
+            else
+            {
+                StopPlayback();
+            }
+            UpdatePlayPauseIconVisibility();
+        }
+
+        private void UpdatePlayPauseIconVisibility()
+        {
+            if (isPlaying)
+            {
+                gridPlay.Visibility = System.Windows.Visibility.Collapsed;
+                gridPause.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                gridPlay.Visibility = System.Windows.Visibility.Visible;
+                gridPause.Visibility = System.Windows.Visibility.Collapsed;
+            }
         }
 
         private void btnExit_Click(object sender, RoutedEventArgs e)
@@ -400,16 +383,9 @@ namespace ArtofKinectRecorder
 
         #endregion
 
-        private void btnSwitchViewer_Click(object sender, RoutedEventArgs e)
+        private void btnPrevious_Click(object sender, RoutedEventArgs e)
         {
-            if (CurrentFrameViewer == pointCloudFrameViewer)
-            {
-                CurrentFrameViewer = rawFrameViewer;
-            }
-            else
-            {
-                CurrentFrameViewer = pointCloudFrameViewer;
-            }
+            playerSource.Seek(0);
         }
     }
 }

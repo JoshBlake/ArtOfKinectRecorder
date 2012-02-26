@@ -2,19 +2,40 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:s="http://schemas.microsoft.com/surface/2008"
                  xmlns:ed="http://schemas.microsoft.com/expression/2010/drawing"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 mc:Ignorable="d"
+                 xmlns:views="clr-namespace:ArtofKinectRecorder.Views"
                  x:Class="ArtofKinectRecorder.ArtofKinectRecorderWindow"
                  Title="The Art of Kinect Recorder"
                  WindowState="Maximized"
                  ResizeMode="NoResize"
                  WindowStyle="None"
                  TextBlock.Foreground="{DynamicResource {x:Static s:SurfaceColors.ControlForegroundBrushKey}}"
-                 FontSize="16">
-    <Grid>
+                 FontSize="16"
+                 d:DesignWidth="1280"
+                 d:DesignHeight="800">
+    <Grid ShowGridLines="True">
+        <Grid.Resources>
+            <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="10" />
             <RowDefinition Height="50" />
             <RowDefinition Height="10" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="50" />
             <RowDefinition Height="10" />
             <RowDefinition Height="50" />
             <RowDefinition Height="10" />
@@ -30,12 +51,32 @@
             <ColumnDefinition Width="50" />
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="50" />
-            <ColumnDefinition Width="10"/>
-            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="10" />
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="50" />
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="50" />
             <ColumnDefinition Width="10" />
@@ -47,7 +88,7 @@
 
         <Grid Grid.Row="1"
               Grid.Column="1"
-              Grid.ColumnSpan="13"
+              Grid.ColumnSpan="29"
               Background="{DynamicResource {x:Static s:SurfaceColors.Accent4BrushKey}}">
             <TextBlock Text="PointStorm"
                        Margin="10"
@@ -56,95 +97,134 @@
                        FontFamily="Segoe360" />
         </Grid>
         <s:SurfaceButton FontSize="24"
-        	x:Name="btnExit"
-        	Click="btnExit_Click"
-        	Grid.Column="15"
-        	Grid.Row="1"
-			Background="{DynamicResource {x:Static s:SurfaceColors.Accent4BrushKey}}"
-        	Style="{DynamicResource GridSurfaceButtonStyle}">
-        	<Path x:Name="Checkmark"
-											StrokeEndLineCap="Flat"
-											Fill="{x:Null}"
-											Stroke="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-											StrokeStartLineCap="Flat"
-											StrokeThickness="4"
-											Width="21"
-											Height="21"
-											Data="M0,24 L12,0 M0,0 L12,24"
-											Stretch="Fill" />
-			 </s:SurfaceButton>
+                         x:Name="btnSettings"
+                         Grid.Column="31"
+                         Grid.ColumnSpan="3"
+                         Grid.Row="1"
+                         Background="{DynamicResource {x:Static s:SurfaceColors.Accent4BrushKey}}"
+                         Style="{DynamicResource GridSurfaceButtonStyle}">
+            <views:SettingsIcon />
+        </s:SurfaceButton>
+        <s:SurfaceButton FontSize="24"
+                         x:Name="btnExit"
+                         Click="btnExit_Click"
+                         Grid.Column="35"
+                         Grid.Row="1"
+                         Background="{DynamicResource {x:Static s:SurfaceColors.Accent4BrushKey}}"
+                         Style="{DynamicResource GridSurfaceButtonStyle}">
+            <Path x:Name="Checkmark"
+                  StrokeEndLineCap="Flat"
+                  Fill="{x:Null}"
+                  Stroke="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                  StrokeStartLineCap="Flat"
+                  StrokeThickness="4"
+                  Width="21"
+                  Height="21"
+                  Data="M0,24 L12,0 M0,0 L12,24"
+                  Stretch="Fill" />
+        </s:SurfaceButton>
         <Grid Grid.Row="3"
               Grid.Column="1"
-              Grid.ColumnSpan="15">
+              Grid.ColumnSpan="35"
+              Grid.RowSpan="13">
             <ContentControl x:Name="FrameViewerHost" />
         </Grid>
 
         <TextBlock Text="FPS"
                    FontWeight="Bold"
                    HorizontalAlignment="Right"
-                   Grid.Row="5"
-                   Grid.Column="1" />
+                   Grid.Row="19"
+                   Grid.Column="7" />
 
         <TextBlock x:Name="txtFPS"
-                   Grid.Row="5"
-                   Grid.Column="3" Grid.ColumnSpan="3" />
+                   Grid.Row="19"
+                   Grid.Column="9"
+                   Grid.ColumnSpan="3" />
 
         <TextBlock Text="Frame"
                    FontWeight="Bold"
                    HorizontalAlignment="Right"
-                   Grid.Row="7"
-                   Grid.Column="1" />
+                   Grid.Row="21"
+                   Grid.Column="7" />
 
         <TextBlock x:Name="txtFrameId"
-                   Grid.Row="7"
-                   Grid.Column="3" Grid.ColumnSpan="3" />
-        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}" Margin="0" Grid.Row="5" Grid.Column="7" Grid.RowSpan="3" Grid.ColumnSpan="3">
-        	<TextBlock Text="Timeline" 
-			FontSize="36" 
-			HorizontalAlignment="Center"/>
-		</Border>
+                   Grid.Row="21"
+                   Grid.Column="9"
+                   Grid.ColumnSpan="3" />
+
+        <TextBlock Text="Points"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Right"
+                   Grid.Row="23"
+                   Grid.Column="7" />
+
+        <TextBlock x:Name="txtPointCount"
+                   Grid.Row="23"
+                   Grid.Column="9"
+                   Grid.ColumnSpan="3" />
         <Grid Grid.ColumnSpan="5"
-              Grid.Column="11"
+              Grid.Column="31"
               Margin="1"
-              Grid.Row="11"
+              Grid.Row="23"
               Background="{DynamicResource {x:Static s:SurfaceColors.ButtonBackgroundBrushKey}}">
             <s:SurfaceCheckBox Content="Kinect"
-                                  Style="{DynamicResource GridSurfaceCheckBoxStyle}"
-                                  Foreground="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-                                  x:Name="rdoViewerPointCloud" />
+                               Style="{DynamicResource GridSurfaceCheckBoxStyle}"
+                               Foreground="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                               x:Name="rdoViewerPointCloud" />
 
         </Grid>
 
         <s:SurfaceButton FontSize="24"
-                         x:Name="btnPlayPause"
-                         Click="btnPlayRecording_Click"
-                         Grid.Column="11"
-                         Grid.Row="5"
-                         Grid.ColumnSpan="5"
-                         Style="{DynamicResource GridSurfaceButtonStyle}">
-            <ed:RegularPolygon InnerRadius="1"
-                               PointCount="3"
-                               Stretch="Fill"
-                               Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-                               Height="18"
-                               Width="21"
-                               RenderTransformOrigin="0.5,0.5">
-                <ed:RegularPolygon.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform Angle="90" />
-                        <TranslateTransform />
-                    </TransformGroup>
-                </ed:RegularPolygon.RenderTransform>
-            </ed:RegularPolygon>
+                               x:Name="btnPlayPause"
+                               Click="btnPlayPause_Click"
+                               Grid.Column="31"
+                               Grid.Row="15"
+                               Grid.ColumnSpan="5"
+                               Style="{DynamicResource GridSurfaceButtonStyle}">
+            <Grid>
+                <Grid x:Name="gridPlay">
+                    <ed:RegularPolygon InnerRadius="1"
+                                       PointCount="3"
+                                       Stretch="Fill"
+                                       Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                                       Height="18"
+                                       Width="21"
+                                       RenderTransformOrigin="0.5,0.5">
+                        <ed:RegularPolygon.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <SkewTransform />
+                                <RotateTransform Angle="90" />
+                                <TranslateTransform />
+                            </TransformGroup>
+                        </ed:RegularPolygon.RenderTransform>
+                    </ed:RegularPolygon>
+                </Grid>
+                <Grid x:Name="gridPause"
+                      Height="21"
+                      Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="3" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Grid.Column="0"
+                               SnapsToDevicePixels="True"
+                               Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}" />
+                    <Rectangle Grid.Column="2"
+                               SnapsToDevicePixels="True"
+                               Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}" />
+                </Grid>
+            </Grid>
         </s:SurfaceButton>
         <s:SurfaceButton FontSize="24"
                          HorizontalContentAlignment="Center"
-                         x:Name="btnRewindRecording"
-                         Grid.Column="11"
-                         Grid.Row="7"
-                         Style="{DynamicResource GridSurfaceButtonStyle}">
+                         x:Name="btnPrevious"
+                         Click="btnPrevious_Click"
+                         Grid.Column="31"
+                         Grid.Row="19"
+                         Style="{DynamicResource GridSurfaceButtonStyle}"
+                         Grid.ColumnSpan="3">
             <StackPanel Orientation="Horizontal">
                 <Rectangle Width="2"
                            Height="21"
@@ -172,18 +252,19 @@
                          HorizontalContentAlignment="Center"
                          VerticalContentAlignment="Center"
                          x:Name="btnRecord"
-                         Grid.Column="13"
-                         Grid.Row="7"
-                         Style="{DynamicResource GridSurfaceButtonStyle}">
+                         Grid.Column="31"
+                         Grid.Row="21"
+                         Style="{DynamicResource GridSurfaceButtonStyle}"
+                         Grid.ColumnSpan="5">
             <Ellipse Fill="{DynamicResource {x:Static s:SurfaceColors.Accent3BrushKey}}"
                      Width="21"
                      Height="21" />
         </s:SurfaceButton>
         <s:SurfaceButton FontSize="24"
-                         x:Name="btnFastForwardRecording"
+                         x:Name="btnNext"
                          Style="{DynamicResource GridSurfaceButtonStyle}"
-                         Grid.Column="15"
-                         Grid.Row="7">
+                         Grid.Column="35"
+                         Grid.Row="19">
             <StackPanel Orientation="Horizontal">
                 <ed:RegularPolygon InnerRadius="1"
                                    PointCount="3"
@@ -207,103 +288,147 @@
                            Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}" />
             </StackPanel>
         </s:SurfaceButton>
-        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}" Margin="0" Grid.Row="3" Grid.Column="7" Grid.ColumnSpan="3">
-        	<TextBlock Text="Point cloud" 
-        		FontSize="36" 
-        		HorizontalAlignment="Center"/>
+        <Border x:Name="borderStage"
+                Background="{DynamicResource {x:Static s:SurfaceColors.Accent2BrushKey}}"
+                Margin="0"
+                Grid.Row="3"
+                Grid.Column="1"
+                Grid.ColumnSpan="19"
+                Grid.RowSpan="11">
+            <views:PointCloudFrameViewer x:Name="pointCloudFrameViewer" />
         </Border>
-        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}" Margin="0" Grid.Row="9" Grid.Column="7" Grid.RowSpan="3">
-        	<TextBlock Text="File A control" 
-        		FontSize="28" 
-        		HorizontalAlignment="Center"/>
+        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"
+                Margin="0"
+                Grid.Row="15"
+                Grid.Column="7"
+                Grid.RowSpan="3"
+                Grid.ColumnSpan="13">
+            <TextBlock Text="Timeline"
+                       FontSize="36"
+                       HorizontalAlignment="Center" />
         </Border>
-		 <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}" Margin="0" Grid.Row="9" Grid.Column="9" Grid.RowSpan="3">
-        	<TextBlock Text="File B control" 
-        		FontSize="28" 
-        		HorizontalAlignment="Center"/>
+        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"
+                Margin="0"
+                Grid.Row="15"
+                Grid.Column="21"
+                Grid.RowSpan="9"
+                Grid.ColumnSpan="9">
+            <TextBlock Text="Content manager"
+                       FontSize="28"
+                       HorizontalAlignment="Center" />
         </Border>
-		 <s:SurfaceButton FontSize="24"
-		 	x:Name="btnFastForwardRecording_Copy"
-		 	Style="{DynamicResource GridSurfaceButtonStyle}"
-		 	Grid.Column="15"
-		 	Grid.Row="9">
-		 	<StackPanel Orientation="Horizontal">
-		 		<ed:RegularPolygon InnerRadius="1"
-		 			PointCount="3"
-		 			Stretch="Fill"
-		 			Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-		 			Height="15"
-		 			Width="18"
-		 			RenderTransformOrigin="0.5,0.5">
-		 			<ed:RegularPolygon.RenderTransform>
-		 				<TransformGroup>
-		 					<ScaleTransform />
-		 					<SkewTransform />
-		 					<RotateTransform Angle="90" />
-		 					<TranslateTransform />
-		 				</TransformGroup>
-		 			</ed:RegularPolygon.RenderTransform>
-		 		</ed:RegularPolygon>
-		 		<ed:RegularPolygon InnerRadius="1"
-		 			PointCount="3"
-		 			Stretch="Fill"
-		 			Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-		 			Height="15"
-		 			Width="18"
-					Margin="0,0,0,0"
-		 			RenderTransformOrigin="0.5,0.5">
-		 			<ed:RegularPolygon.RenderTransform>
-		 				<TransformGroup>
-		 					<ScaleTransform />
-		 					<SkewTransform />
-		 					<RotateTransform Angle="90" />
-		 					<TranslateTransform />
-		 				</TransformGroup>
-		 			</ed:RegularPolygon.RenderTransform>
-		 		</ed:RegularPolygon>
-		 	</StackPanel>
-		 </s:SurfaceButton>
-		 <s:SurfaceButton FontSize="24"
-		 	x:Name="btnFastRewind"
-		 	Style="{DynamicResource GridSurfaceButtonStyle}"
-		 	Grid.Column="13"
-		 	Grid.Row="9">
-		 	<StackPanel Orientation="Horizontal">
-		 		<ed:RegularPolygon InnerRadius="1"
-		 			PointCount="3"
-		 			Stretch="Fill"
-		 			Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-		 			Height="15"
-		 			Width="18"
-		 			RenderTransformOrigin="0.5,0.5">
-		 			<ed:RegularPolygon.RenderTransform>
-		 				<TransformGroup>
-		 					<ScaleTransform />
-		 					<SkewTransform />
-		 					<RotateTransform Angle="-90" />
-		 					<TranslateTransform />
-		 				</TransformGroup>
-		 			</ed:RegularPolygon.RenderTransform>
-		 		</ed:RegularPolygon>
-		 		<ed:RegularPolygon InnerRadius="1"
-		 			PointCount="3"
-		 			Stretch="Fill"
-		 			Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-		 			Height="15"
-		 			Width="18"
-		 			Margin="0,0,0,0"
-		 			RenderTransformOrigin="0.5,0.5">
-		 			<ed:RegularPolygon.RenderTransform>
-		 				<TransformGroup>
-		 					<ScaleTransform />
-		 					<SkewTransform />
-		 					<RotateTransform Angle="-90" />
-		 					<TranslateTransform />
-		 				</TransformGroup>
-		 			</ed:RegularPolygon.RenderTransform>
-		 		</ed:RegularPolygon>
-		 	</StackPanel>
-		 </s:SurfaceButton>
+        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"
+                Margin="0"
+                Grid.Row="15"
+                Grid.Column="1"
+                Grid.RowSpan="3"
+                Grid.ColumnSpan="5">
+            <TextBlock Text="View modes"
+                       FontSize="28"
+                       HorizontalAlignment="Center" />
+        </Border>
+        <s:SurfaceButton FontSize="24"
+                         x:Name="btnRewind"
+                         Style="{DynamicResource GridSurfaceButtonStyle}"
+                         Grid.Column="31"
+                         Grid.Row="17"
+                         Grid.ColumnSpan="3">
+            <StackPanel Orientation="Horizontal">
+                <ed:RegularPolygon InnerRadius="1"
+                                   PointCount="3"
+                                   Stretch="Fill"
+                                   Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                                   Height="15"
+                                   Width="18"
+                                   RenderTransformOrigin="0.5,0.5">
+                    <ed:RegularPolygon.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="-90" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </ed:RegularPolygon.RenderTransform>
+                </ed:RegularPolygon>
+                <ed:RegularPolygon InnerRadius="1"
+                                   PointCount="3"
+                                   Stretch="Fill"
+                                   Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                                   Height="15"
+                                   Width="18"
+                                   Margin="0,0,0,0"
+                                   RenderTransformOrigin="0.5,0.5">
+                    <ed:RegularPolygon.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="-90" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </ed:RegularPolygon.RenderTransform>
+                </ed:RegularPolygon>
+            </StackPanel>
+        </s:SurfaceButton>
+        <s:SurfaceButton FontSize="24"
+                         x:Name="btnFastForward"
+                         Style="{DynamicResource GridSurfaceButtonStyle}"
+                         Grid.Column="35"
+                         Grid.Row="17">
+            <StackPanel Orientation="Horizontal">
+                <ed:RegularPolygon InnerRadius="1"
+                                   PointCount="3"
+                                   Stretch="Fill"
+                                   Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                                   Height="15"
+                                   Width="18"
+                                   RenderTransformOrigin="0.5,0.5">
+                    <ed:RegularPolygon.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="90" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </ed:RegularPolygon.RenderTransform>
+                </ed:RegularPolygon>
+                <ed:RegularPolygon InnerRadius="1"
+                                   PointCount="3"
+                                   Stretch="Fill"
+                                   Fill="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
+                                   Height="15"
+                                   Width="18"
+                                   Margin="0,0,0,0"
+                                   RenderTransformOrigin="0.5,0.5">
+                    <ed:RegularPolygon.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="90" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </ed:RegularPolygon.RenderTransform>
+                </ed:RegularPolygon>
+            </StackPanel>
+        </s:SurfaceButton>
+        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"
+                Margin="0"
+                Grid.Row="19"
+                Grid.Column="1"
+                Grid.RowSpan="5"
+                Grid.ColumnSpan="5">
+            <TextBlock Text="View controls"
+                       FontSize="28"
+                       HorizontalAlignment="Center" />
+        </Border>
+        <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"
+                Margin="0"
+                Grid.Row="5"
+                Grid.Column="21"
+                Grid.RowSpan="9"
+                Grid.ColumnSpan="15">
+            <TextBlock Text="Content properties"
+                       FontSize="28"
+                       HorizontalAlignment="Center" />
+        </Border>
     </Grid>
-
 </s:SurfaceWindow>
