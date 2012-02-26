@@ -15,7 +15,7 @@
                  FontSize="16"
                  d:DesignWidth="1280"
                  d:DesignHeight="800">
-    <Grid ShowGridLines="True">
+    <Grid ShowGridLines="False">
         <Grid.Resources>
             <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
         </Grid.Resources>
@@ -252,6 +252,7 @@
                          HorizontalContentAlignment="Center"
                          VerticalContentAlignment="Center"
                          x:Name="btnRecord"
+                         Click="btnRecord_Click"
                          Grid.Column="31"
                          Grid.Row="21"
                          Style="{DynamicResource GridSurfaceButtonStyle}"

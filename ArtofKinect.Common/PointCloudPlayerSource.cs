@@ -56,7 +56,21 @@ namespace ArtofKinect.Common
 
         #region Status
 
-        public PointCloudPlayerStatus Status { get; private set; }
+        private PointCloudPlayerStatus _status;
+        public PointCloudPlayerStatus Status
+        {
+            get
+            {
+                return _status;
+            }
+            set
+            {
+                if (_status == value)
+                    return;
+                _status = value;
+                OnStatusChanged();
+            }
+        }
 
         #endregion
 
@@ -94,6 +108,22 @@ namespace ArtofKinect.Common
 
         #region Events
 
+        #region StatusChanged
+
+        public event EventHandler StatusChanged;
+
+        protected void OnStatusChanged()
+        {
+            if (StatusChanged == null)
+                return;
+
+            StatusChanged(this, EventArgs.Empty);
+        }
+
+        #endregion
+
+        #region MotionFrameAvaiable
+
         public event EventHandler<MotionFrameAvailableEventArgs> MotionFrameAvailable;
 
         protected void OnMotionFrameAvailable(MotionFrame frame)
@@ -103,6 +133,8 @@ namespace ArtofKinect.Common
 
             MotionFrameAvailable(this, new MotionFrameAvailableEventArgs(frame));
         }
+
+        #endregion
 
         #endregion
 
@@ -187,6 +219,8 @@ namespace ArtofKinect.Common
         {
             if (frameNumber < 0 || frameNumber > MaxFrameIndex)
             {
+                if (frameNumber == 0)
+                    return;
                 throw new ArgumentOutOfRangeException("frameNumber");
             }
 

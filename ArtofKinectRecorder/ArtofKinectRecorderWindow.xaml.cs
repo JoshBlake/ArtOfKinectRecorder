@@ -25,6 +25,7 @@ using ArtofKinect.Common;
 using System.Windows.Threading;
 using System.Threading;
 using ArtofKinectRecorder.Views;
+using System.Diagnostics;
 
 namespace ArtofKinectRecorder
 {
@@ -36,6 +37,7 @@ namespace ArtofKinectRecorder
         #region Fields
 
         bool isPlaying = false;
+
         KinectSdkDevice sensorDevice;
         
         DeviceConfiguration currentConfiguration;
@@ -74,12 +76,14 @@ namespace ArtofKinectRecorder
             
             UpdatePlayPauseIconVisibility();
 
+            UpdateRecordingButtonVisibility();
+
             frameQueue = new WorkQueue<MotionFrame>();
             frameQueue.Callback = ProcessFrame;
             frameQueue.MaxQueueLength = 5;
 
             InitSensor();
-            InitSerializer();
+            InitSerializerAndPlayerSouce();
             InitSoundCapture();
             pointCloudFrameViewer.Activate(currentConfiguration);
 
@@ -135,11 +139,10 @@ namespace ArtofKinectRecorder
 
         private void InitSoundCapture()
         {
-            return;
             soundRecording = new SoundRecording();
         }
         
-        private void InitSerializer()
+        private void InitSerializerAndPlayerSouce()
         {
             serializer = new DepthCodeMotionFrameSerializer();
             serializer.JpegCompression = 60;
@@ -150,8 +153,32 @@ namespace ArtofKinectRecorder
 
             playerSource = new PointCloudPlayerSource(serializer);
             playerSource.MotionFrameAvailable += new EventHandler<MotionFrameAvailableEventArgs>(playerSource_MotionFrameAvailable);
+            playerSource.StatusChanged += new EventHandler(playerSource_StatusChanged);
 
             playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
+        }
+
+        void playerSource_StatusChanged(object sender, EventArgs e)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    playerSource_StatusChanged(sender, e);
+                });
+                return;
+            }
+            if (playerSource.Status != PointCloudPlayerStatus.Playing && isPlaying)
+            {
+                isShowingSavedFrame = false;
+
+                if (sensorDevice == null)
+                {
+                    InitSensor();
+                }
+                isPlaying = false;
+                UpdatePlayPauseIconVisibility();
+            }
         }
 
         private void InitSensor()
@@ -160,7 +187,7 @@ namespace ArtofKinectRecorder
             config.DepthBufferFormat = DepthBufferFormats.Format640X480X16;
             config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
             currentConfiguration = config;
-            return;
+
             sensorDevice = new KinectSdkDevice();
             sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
 
@@ -231,18 +258,6 @@ namespace ArtofKinectRecorder
 
             UpdateFrameViewer(frame);
 
-            bool newIsRecordingOn = false;// cbxRecord.IsChecked.Value;
-            if (!isRecordingOn && newIsRecordingOn)
-            {
-                StartRecording();
-                isRecordingOn = newIsRecordingOn;
-            }
-            else if (isRecordingOn && !newIsRecordingOn)
-            {
-                StopRecording();
-                isRecordingOn = newIsRecordingOn;
-            }
-
             UpdateCompressionSizes(frame);
 
             CheckFPS();
@@ -302,13 +317,18 @@ namespace ArtofKinectRecorder
         
         private void StartRecording()
         {
+            StopPlayback();
+            isRecordingOn = true;
+            isPlaying = false;
             soundRecording.Start();
+            UpdateRecordingButtonVisibility();
         }
 
         private void StopRecording()
         {
+            isRecordingOn = false;
             soundRecording.Stop();
-            Thread.Sleep(100);
+            UpdateRecordingButtonVisibility();
             //playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
         }
 
@@ -335,22 +355,14 @@ namespace ArtofKinectRecorder
 
         #region Interaction
         
-        private void btnClear_Click(object sender, RoutedEventArgs e)
-        {
-            isShowingSavedFrame = false;
-
-            playerSource.Stop();
-
-            if (sensorDevice == null)
-            {
-                InitSensor();
-            }
-        }
-
         private void btnPlayPause_Click(object sender, RoutedEventArgs e)
         {
             isPlaying = !isPlaying;
-            if (isPlaying)
+            if (isRecordingOn)
+            {
+                StopRecording();
+            }
+            else if (isPlaying)
             {                
                 StartPlayback();
             }
@@ -375,6 +387,31 @@ namespace ArtofKinectRecorder
             }
         }
 
+        private void UpdateRecordingButtonVisibility()
+        {
+            if (isRecordingOn)
+            {
+                gridPause.Visibility = System.Windows.Visibility.Visible;
+                gridPlay.Visibility = System.Windows.Visibility.Collapsed;
+
+                btnRecord.IsEnabled = false;
+                btnNext.IsEnabled = false;
+                btnPrevious.IsEnabled = false;
+                btnFastForward.IsEnabled = false;
+                btnRewind.IsEnabled = false;
+            }
+            else
+            {
+                btnRecord.IsEnabled = true;
+                btnNext.IsEnabled = true;
+                btnPrevious.IsEnabled = true;
+                btnFastForward.IsEnabled = true;
+                btnRewind.IsEnabled = true;
+                UpdatePlayPauseIconVisibility();
+            }
+        }
+
+
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
             StopSensor();
@@ -386,6 +423,14 @@ namespace ArtofKinectRecorder
         private void btnPrevious_Click(object sender, RoutedEventArgs e)
         {
             playerSource.Seek(0);
+        }
+
+        private void btnRecord_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isRecordingOn)
+            {
+                StartRecording();
+            }
         }
     }
 }
