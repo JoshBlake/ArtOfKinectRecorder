@@ -40,12 +40,16 @@
     <Reference Include="InfoStrat.MotionFx.PointCloud, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>C:\Program Files (x86)\InfoStrat\InfoStrat.MotionFx\lib\InfoStrat.MotionFx.PointCloud.dll</HintPath>
     </Reference>
+    <Reference Include="Ionic.Zip.Reduced, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <HintPath>..\external\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Kinect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="NAudio">
       <HintPath>..\external\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,8 +57,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppSettings.cs" />
     <Compile Include="AudioStreamEnergy.cs" />
     <Compile Include="PointCloudPlayerSource.cs" />
+    <Compile Include="PointCloudStreamDescription.cs" />
+    <Compile Include="PointCloudStreamRecorder.cs" />
     <Compile Include="SoundPlayer.cs" />
     <Compile Include="SoundRecording.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

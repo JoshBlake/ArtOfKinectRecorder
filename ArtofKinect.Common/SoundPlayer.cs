@@ -86,6 +86,8 @@ namespace ArtofKinect.Common
 
         public void Seek(TimeSpan offset)
         {
+            if (fileStream == null)
+                return;
             fileStream.CurrentTime = offset;
         }
 

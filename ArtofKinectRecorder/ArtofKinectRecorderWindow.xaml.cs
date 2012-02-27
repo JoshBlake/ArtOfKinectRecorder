@@ -46,26 +46,40 @@ namespace ArtofKinectRecorder
         int fpsCount;
         DateTime lastFPSCheck;
         
-        int lastSizeDepth = 0;
-        int lastSizeAll = 0;
-        int savedFrameId = 0;
-
         bool isRecordingOn = false;
         bool isShowingSavedFrame = false;
 
         DepthCodeMotionFrameSerializer serializer;
 
-        WorkQueue<MotionFrame> frameQueue;
-
         MotionFrame lastFrame;
-        SoundRecording soundRecording;
 
         PointCloudPlayerSource playerSource;
+        PointCloudStreamRecorder pointRecorder;
+
+        string _settingsFilename = "settings.xaml";
 
         #endregion
 
         #region Properties
-       
+
+        AppSettings _settings;
+        AppSettings Settings
+        {
+            get
+            {
+                if (_settings == null)
+                {
+                    _settings = AppSettings.Load(_settingsFilename);
+                }
+                return _settings;
+            }
+            set
+            {
+                _settings = value;
+                AppSettings.Save(_settingsFilename, _settings);
+            }
+        }
+
         #endregion
 
         #region Constructors
@@ -73,18 +87,15 @@ namespace ArtofKinectRecorder
         public ArtofKinectRecorderWindow()
         {
             InitializeComponent();
-            
+
+            VerifySettings();
+
             UpdatePlayPauseIconVisibility();
 
             UpdateRecordingButtonVisibility();
 
-            frameQueue = new WorkQueue<MotionFrame>();
-            frameQueue.Callback = ProcessFrame;
-            frameQueue.MaxQueueLength = 5;
-
             InitSensor();
             InitSerializerAndPlayerSouce();
-            InitSoundCapture();
             pointCloudFrameViewer.Activate(currentConfiguration);
 
             lastFPSCheck = DateTime.Now;
@@ -100,24 +111,31 @@ namespace ArtofKinectRecorder
                     playerSource.Dispose();
                     playerSource = null;
                 }
-
-                if (soundRecording != null)
+                if (pointRecorder != null)
                 {
-                    soundRecording.Stop();
-                    soundRecording.Dispose();
-                    soundRecording = null;
+                    pointRecorder.Dispose();
+                    pointRecorder = null;
                 }
+
                 if (sensorDevice != null)
                 {
                     sensorDevice.Dispose();
                     sensorDevice = null;
                 }
-                if (frameQueue != null)
-                {
-                    frameQueue.Dispose();
-                    frameQueue = null;
-                }
             };
+        }
+
+        private void VerifySettings()
+        {
+            if (!Directory.Exists(Settings.RecordingsDirectory))
+            {
+                Directory.CreateDirectory(Settings.RecordingsDirectory);
+            }
+
+            if (!Directory.Exists(Settings.ScratchDirectory))
+            {
+                Directory.CreateDirectory(Settings.ScratchDirectory);
+            }
         }
 
         #endregion
@@ -137,11 +155,6 @@ namespace ArtofKinectRecorder
             }
         }
 
-        private void InitSoundCapture()
-        {
-            soundRecording = new SoundRecording();
-        }
-        
         private void InitSerializerAndPlayerSouce()
         {
             serializer = new DepthCodeMotionFrameSerializer();
@@ -154,6 +167,8 @@ namespace ArtofKinectRecorder
             playerSource = new PointCloudPlayerSource(serializer);
             playerSource.MotionFrameAvailable += new EventHandler<MotionFrameAvailableEventArgs>(playerSource_MotionFrameAvailable);
             playerSource.StatusChanged += new EventHandler(playerSource_StatusChanged);
+
+            pointRecorder = new PointCloudStreamRecorder(serializer);
 
             playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
         }
@@ -207,41 +222,20 @@ namespace ArtofKinectRecorder
 
         void playerSource_MotionFrameAvailable(object sender, MotionFrameAvailableEventArgs e)
         {
-            savedFrameId = e.MotionFrame.Id;
             DisplayFrame(e.MotionFrame);
         }
 
         void device_CompositeFrameAvailable(object sender, CompositeFrameAvailableEventArgs e)
         {
-            frameQueue.AddWork(e.MotionFrame);
-            //if (pointCloudFrameViewer2 != null)
-            //{
-            //    pointCloudFrameViewer2.UpdateMotionFrame(sensorDevice, e.MotionFrame);
-            //}
-            if (isShowingSavedFrame)
+            if (isRecordingOn)
             {
-                return;
+                pointRecorder.AddFrame(e.MotionFrame);
             }
-            else
+
+            if (!isShowingSavedFrame)
             {
                 DisplayFrame(e.MotionFrame);
             }
-        }
-
-        void ProcessFrame(MotionFrame frame)
-        {
-            if (isRecordingOn)
-            {
-                SaveFrame(frame, "Recording/frame" + frame.Id.ToString("D8") + ".mfx");
-                savedFrameId = frame.Id;
-            }
-            else
-            {
-                lastSizeDepth = frame.DepthFrame.Data.Length;
-                int originalRGBSize = frame.RGBFrame.Data.Length;
-                lastSizeAll = lastSizeDepth + originalRGBSize;
-            }
-
         }
 
         private void DisplayFrame(MotionFrame frame)
@@ -266,18 +260,7 @@ namespace ArtofKinectRecorder
 
         private void UpdateCompressionSizes(MotionFrame frame)
         {
-            int originalDepthSize = frame.DepthFrame.Data.Length;
-            
-            int originalRGBSize = frame.RGBFrame.Data.Length;
-
-            double ratio = originalDepthSize / (double)lastSizeDepth;
-            //txtSizeDepth.Text = "Depth: " + lastSizeDepth.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
-
-            int totalSize = originalDepthSize + originalRGBSize;
-
-            ratio = totalSize / (double)lastSizeAll;
-            //txtSizeAll.Text = "All: " + lastSizeAll.ToString() + " bytes  Ratio: " + ratio.ToString("F1") + " : 1";
-            txtFrameId.Text = savedFrameId.ToString();
+            txtFrameId.Text = "0";
 
         }
 
@@ -294,14 +277,6 @@ namespace ArtofKinectRecorder
             }
         }
 
-        private void SaveFrame(MotionFrame frame, string filename)
-        {
-            var bytes = serializer.Serialize(frame);
-            lastSizeDepth = serializer.DepthUserFrameSize;
-            lastSizeAll = bytes.Length;
-            File.WriteAllBytes(filename, bytes);
-        }
-        
         private void LoadFrame(string filename)
         {
             if (!File.Exists(filename))
@@ -311,24 +286,29 @@ namespace ArtofKinectRecorder
             isShowingSavedFrame = true;
             var frame = serializer.Load(filename);
             
-            savedFrameId = frame.Id;
             DisplayFrame(frame);
         }
         
         private void StartRecording()
         {
+            string filename = "PointCloud0001.zip";
+            filename = System.IO.Path.Combine(Settings.RecordingsDirectory, filename);
+            pointRecorder.StartRecording(filename, Settings.ScratchDirectory);
+           
             StopPlayback();
             isRecordingOn = true;
             isPlaying = false;
-            soundRecording.Start();
+            
             UpdateRecordingButtonVisibility();
         }
 
         private void StopRecording()
         {
             isRecordingOn = false;
-            soundRecording.Stop();
             UpdateRecordingButtonVisibility();
+
+            pointRecorder.StopRecording();
+
             //playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
         }
 
@@ -349,7 +329,6 @@ namespace ArtofKinectRecorder
         {
             playerSource.Stop();
         }
-
 
         #endregion
 

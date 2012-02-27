@@ -170,7 +170,7 @@
             <s:SurfaceCheckBox Content="Kinect"
                                Style="{DynamicResource GridSurfaceCheckBoxStyle}"
                                Foreground="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-                               x:Name="rdoViewerPointCloud" />
+                               x:Name="cbxKinect" />
 
         </Grid>
 
@@ -290,12 +290,11 @@
             </StackPanel>
         </s:SurfaceButton>
         <Border x:Name="borderStage"
-                Background="{DynamicResource {x:Static s:SurfaceColors.Accent2BrushKey}}"
                 Margin="0"
                 Grid.Row="3"
                 Grid.Column="1"
                 Grid.ColumnSpan="19"
-                Grid.RowSpan="11">
+                Grid.RowSpan="11" Background="Black">
             <views:PointCloudFrameViewer x:Name="pointCloudFrameViewer" />
         </Border>
         <Border Background="{DynamicResource {x:Static s:SurfaceColors.Accent1BrushKey}}"

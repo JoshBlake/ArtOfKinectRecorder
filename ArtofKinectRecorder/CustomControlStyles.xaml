@@ -64,7 +64,7 @@
 							<ColumnDefinition Width="10"/>
 							<ColumnDefinition Width="*"/>
 						</Grid.ColumnDefinitions>
-						<Rectangle  Grid.ColumnSpan="2" 
+						<Rectangle  Grid.ColumnSpan="3" 
 							x:Name="hitArea"
 							Fill="{StaticResource ControlHitAreaBrush}" 
 							Width="{TemplateBinding Width}" 
@@ -269,9 +269,9 @@
 							<ColumnDefinition Width="10"/>
 							<ColumnDefinition Width="*"/>
 						</Grid.ColumnDefinitions>
-						<Rectangle  Grid.ColumnSpan="2" 
+						<Rectangle  Grid.ColumnSpan="3" 
 							x:Name="hitArea"								
-							Fill="{StaticResource ControlHitAreaBrush}" 
+							Fill="#00FFFFFF" 
 							Width="{TemplateBinding Width}" 
 							Height="{TemplateBinding Height}"/>
 						<BulletDecorator Grid.Column="0"

@@ -53,7 +53,7 @@ namespace ArtofKinect.Common
 
         #region Public Methods
 
-        public void Start()
+        public void Start(string scratchDirectory)
         {
             isRunning = true;
             kinectSource.BeamAngleMode = BeamAngleMode.Adaptive;
@@ -65,7 +65,7 @@ namespace ArtofKinect.Common
             audioCaptureThread = new Thread(CaptureAudio);
             audioCaptureThread.Priority = ThreadPriority.Highest;
             audioCaptureThread.Name = "Kinect audio capture";
-            audioCaptureThread.Start();
+            audioCaptureThread.Start(scratchDirectory);
         }
 
         public void Stop()
@@ -89,13 +89,15 @@ namespace ArtofKinect.Common
             return sensor.AudioSource;
         }
 
-        private void CaptureAudio()
+        private void CaptureAudio(object parameter)
         {
-            string outputFileName = "Recording/kinectaudio.wav";
+            string scratchDirectory = (string)parameter;
+
+            string outputFileName = Path.Combine(scratchDirectory, "kinectaudio.wav");
 
             using (var fileStream = new FileStream(outputFileName, FileMode.Create))
             {
-                using (var sampleStream = new StreamWriter(new FileStream("Recording/kinectaudiosamples.log", FileMode.Create)))
+                using (var sampleStream = new StreamWriter(new FileStream(Path.Combine(scratchDirectory, "kinectaudiosamples.log"), FileMode.Create)))
                 {
                     WavWriter.WriteWavHeader(fileStream);
 
