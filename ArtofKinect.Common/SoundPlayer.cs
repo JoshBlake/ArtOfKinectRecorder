@@ -15,7 +15,7 @@ namespace ArtofKinect.Common
         #region Fields
 
         WaveOutEvent playbackDevice;
-        WaveStream fileStream;
+        WaveStream wavStream;
         
         #endregion
 
@@ -36,31 +36,48 @@ namespace ArtofKinect.Common
         {
             if (!File.Exists(filename))
                 return;
-
+            
             var inputStream = CreateInputStream(filename);
             playbackDevice.Init(new SampleToWaveProvider(inputStream));
+        }
+
+        public void LoadWavStream(Stream stream)
+        {
+            var inputStream = CreateInputStream(stream);
+            playbackDevice.Init(new SampleToWaveProvider(inputStream));
+        }
+
+        private ISampleProvider CreateInputStream(Stream stream)
+        {
+            wavStream = OpenWavStream(stream);
+            return CreateSampleStream(wavStream);
         }
 
         private ISampleProvider CreateInputStream(string fileName)
         {
             if (fileName.EndsWith(".wav"))
             {
-                fileStream = OpenWavStream(fileName);
+                wavStream = OpenWavFile(fileName);
             }
             else if (fileName.EndsWith(".mp3"))
             {
-                fileStream = new Mp3FileReader(fileName);
+                wavStream = new Mp3FileReader(fileName);
             }
             else
             {
                 throw new InvalidOperationException("Unsupported extension");
             }
+            return CreateSampleStream(wavStream);
+        }
+
+        private static ISampleProvider CreateSampleStream(WaveStream fileStream)
+        {
             var inputStream = new SampleChannel(fileStream);
             var sampleStream = new NotifyingSampleProvider(inputStream);
             return sampleStream;
         }
 
-        private static WaveStream OpenWavStream(string fileName)
+        private static WaveStream OpenWavFile(string fileName)
         {
             WaveStream readerStream = new WaveFileReader(fileName);
             if (readerStream.WaveFormat.Encoding != WaveFormatEncoding.Pcm)
@@ -71,9 +88,20 @@ namespace ArtofKinect.Common
             return readerStream;
         }
 
+        private static WaveStream OpenWavStream(Stream stream)
+        {
+            WaveStream readerStream = new WaveFileReader(stream);
+            if (readerStream.WaveFormat.Encoding != WaveFormatEncoding.Pcm)
+            {
+                readerStream = WaveFormatConversionStream.CreatePcmStream(readerStream);
+                readerStream = new BlockAlignReductionStream(readerStream);
+            }
+            return readerStream;
+        }
+
         public void Play()
         {
-            if (playbackDevice != null && fileStream != null && playbackDevice.PlaybackState != PlaybackState.Playing)
+            if (playbackDevice != null && wavStream != null && playbackDevice.PlaybackState != PlaybackState.Playing)
             {
                 playbackDevice.Play();
             }
@@ -86,9 +114,9 @@ namespace ArtofKinect.Common
 
         public void Seek(TimeSpan offset)
         {
-            if (fileStream == null)
+            if (wavStream == null)
                 return;
-            fileStream.CurrentTime = offset;
+            wavStream.CurrentTime = offset;
         }
 
         private void SoundWorker()
@@ -112,10 +140,10 @@ namespace ArtofKinect.Common
 
         private void Dispose(bool disposing)
         {
-            if (fileStream != null)
+            if (wavStream != null)
             {
-                fileStream.Dispose();
-                fileStream = null;
+                wavStream.Dispose();
+                wavStream = null;
             }
             if (playbackDevice != null)
             {

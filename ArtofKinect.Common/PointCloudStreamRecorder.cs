@@ -129,7 +129,7 @@ namespace ArtofKinect.Common
 
         private void ShutdownFrameQueue()
         {
-            if (_frameQueue == null)
+            if (_frameQueue != null)
             {
                 _frameQueue.Dispose();
                 _frameQueue = null;
@@ -140,10 +140,11 @@ namespace ArtofKinect.Common
         {
             using (var zip = new ZipFile(_filename))
             {
+                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
+
                 var files = Directory.EnumerateFiles(ScratchDirectory);
 
                 zip.AddFiles(files, "");
-
                 zip.Save();
             }
         }

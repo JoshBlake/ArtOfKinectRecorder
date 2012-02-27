@@ -8,6 +8,7 @@ using InfoStrat.MotionFx.Devices;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Ionic.Zip;
 
 namespace ArtofKinect.Common
 {
@@ -49,6 +50,13 @@ namespace ArtofKinect.Common
         WorkQueue<string> _loadingQueue;
 
         SoundPlayer _soundPlayer;
+
+        ZipFile _zipFile;
+
+        string descriptionFilename = "description.xaml";
+
+        string audioFilename = "kinectaudio.wav";
+        MemoryStream _audioStream;
 
         #endregion
 
@@ -160,34 +168,63 @@ namespace ArtofKinect.Common
 
         #region Public Methods
 
-        public void Load(string directory, string frameMask, string audioFilename)
+        public void Load(string filename)
         {
             Reset();
 
-            if (!Directory.Exists("Recording/"))
+            if (!File.Exists(filename))
             {
-                Directory.CreateDirectory("Recording/");
+                throw new FileNotFoundException();
             }
 
-            _soundPlayer.Load(audioFilename);
-            
-            IEnumerable<string> files = Directory.EnumerateFiles("Recording/", "frame*.mfx");
+            if (_zipFile != null)
+            {
+                _zipFile.Dispose();
+                _zipFile = null;
+            }
 
-            _filesToLoad = new List<string>(files.OrderBy(f => f));
+            _zipFile = new ZipFile(filename);
+
+            if (!_zipFile.EntryFileNames.Contains(descriptionFilename))
+            {
+                Unload();
+                return;
+            }
+
+            var frameFiles = _zipFile.EntryFileNames.Where(s => s.Substring(s.Length - 3, 3) == "mfx");
+
+            _filesToLoad = frameFiles.OrderBy(f => f).ToList();
 
             if (_filesToLoad.Count == 0)
             {
                 Unload();
                 return;
             }
-            MotionFrameHeader header = _serializer.LoadHeader(_filesToLoad.FirstOrDefault());
 
-            MinTimeUTC = header.TimeUTC;
-            CurrentTimeUTC = header.TimeUTC;
+            if (_zipFile.EntryFileNames.Contains(audioFilename))
+            {
+                if (_audioStream != null)
+                {
+                    _audioStream.Dispose();
+                    _audioStream = null;
+                }
+                _audioStream = new MemoryStream();
+                _zipFile[audioFilename].Extract(_audioStream);
+                _audioStream.Position = 0;
+                _soundPlayer.LoadWavStream(_audioStream);
+            }
 
-            header = _serializer.LoadHeader(_filesToLoad.LastOrDefault());
+            using (var settingsStream = new MemoryStream())
+            {
+                _zipFile[descriptionFilename].Extract(settingsStream);
+                settingsStream.Position = 0;
+                var description = PointCloudStreamDescription.Load(settingsStream);
 
-            MaxTimeUTC = header.TimeUTC;
+                MinTimeUTC = description.RecordingStartDateTimeUTC;
+                CurrentTimeUTC = MinTimeUTC;
+                MaxTimeUTC = description.RecordingStopDateTimeUTC;
+                 
+            }
 
             Seek(0);
             Status = PointCloudPlayerStatus.Stopped;
@@ -230,14 +267,23 @@ namespace ArtofKinect.Common
             }
 
             //TODO: intelligently reset buffer
-            _bufferedFrames.Clear(); 
+            lock (_bufferedFrames)
+            {
+                _bufferedFrames.Clear();
+            }
             _nextFrameToLoadIndex = frameNumber;
             CurrentFrameIndex = frameNumber;
 
-            MotionFrameHeader header = _serializer.LoadHeader(_filesToLoad[frameNumber]);
+            using (var stream = new MemoryStream())
+            {
+                _zipFile[_filesToLoad[frameNumber]].Extract(stream);
+                stream.Position = 0;
+                MotionFrameHeader header = _serializer.DeserializeHeader(stream);
+                var timeOffset = header.TimeUTC - MinTimeUTC;
+                _soundPlayer.Seek(timeOffset);
 
-            var timeOffset = header.TimeUTC - MinTimeUTC;
-            _soundPlayer.Seek(timeOffset);
+            }
+
         }
 
         #endregion
@@ -256,7 +302,22 @@ namespace ArtofKinect.Common
 
             _filesToLoad.Clear();
 
-            _bufferedFrames.Clear();
+            lock (_bufferedFrames)
+            {
+                _bufferedFrames.Clear();
+            }
+
+            if (_audioStream != null)
+            {
+                _audioStream.Dispose();
+                _audioStream = null;
+            }
+
+            if (_zipFile != null)
+            {
+                _zipFile.Dispose();
+                _zipFile = null;
+            }
         }
 
         private void CreatePlaybackThread()
@@ -273,7 +334,7 @@ namespace ArtofKinect.Common
 
         private void PlaybackWorker()
         {
-            
+
             while (_isRunning)
             {
                 BufferFrames();
@@ -311,8 +372,22 @@ namespace ArtofKinect.Common
 
         private void LoadFrameWorker(string filename)
         {
-            var frame = _serializer.Load(filename);
+            if (_zipFile == null)
+                return;
+
+            MotionFrame frame = null;
+            using (var stream = new MemoryStream())
+            {
+                _zipFile[filename].Extract(stream);
+                stream.Position = 0;
+                frame = _serializer.Deserialize(stream);
+            }
+            if (frame == null)
+            {
+                throw new InvalidOperationException("MotionFrame " + filename + " not deserialized correctly");
+            }
             Trace.WriteLine("Buffering frame " + filename);
+
 
             lock (_bufferedFrames)
             {
@@ -388,6 +463,12 @@ namespace ArtofKinect.Common
         private void Dispose(bool disposing)
         {
             _isRunning = false;
+
+            if (_soundPlayer != null)
+            {
+                _soundPlayer.Dispose();
+                _soundPlayer = null;
+            }
 
             if (_playbackThread != null &&
                 _playbackThread.IsAlive)

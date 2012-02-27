@@ -58,6 +58,7 @@ namespace ArtofKinectRecorder
 
         string _settingsFilename = "settings.xaml";
 
+        string _currentFilename = "PointCloud0001.zip";
         #endregion
 
         #region Properties
@@ -170,7 +171,8 @@ namespace ArtofKinectRecorder
 
             pointRecorder = new PointCloudStreamRecorder(serializer);
 
-            playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
+            string filename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
+            playerSource.Load(filename);
         }
 
         void playerSource_StatusChanged(object sender, EventArgs e)
@@ -291,9 +293,8 @@ namespace ArtofKinectRecorder
         
         private void StartRecording()
         {
-            string filename = "PointCloud0001.zip";
-            filename = System.IO.Path.Combine(Settings.RecordingsDirectory, filename);
-            pointRecorder.StartRecording(filename, Settings.ScratchDirectory);
+            _currentFilename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
+            pointRecorder.StartRecording(_currentFilename, Settings.ScratchDirectory);
            
             StopPlayback();
             isRecordingOn = true;
@@ -320,7 +321,8 @@ namespace ArtofKinectRecorder
 
             if (playerSource.Status == PointCloudPlayerStatus.NotLoaded)
             {
-                playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
+                string filename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
+                playerSource.Load(filename);
             }
             playerSource.Play();
         }

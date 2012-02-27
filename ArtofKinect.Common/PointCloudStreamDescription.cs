@@ -56,6 +56,11 @@ namespace ArtofKinect.Common
             XamlServices.Save(filename, desc);
         }
 
+        public static void Save(Stream stream, PointCloudStreamDescription desc)
+        {
+            XamlServices.Save(stream, desc);
+        }
+
         public static PointCloudStreamDescription Load(string filename)
         {
             if (!File.Exists(filename))
@@ -70,5 +75,14 @@ namespace ArtofKinect.Common
         }
 
         #endregion
+
+        internal static PointCloudStreamDescription Load(Stream stream)
+        {
+            var desc = XamlServices.Load(stream) as PointCloudStreamDescription; 
+            if (desc == null)
+                desc = new PointCloudStreamDescription();
+
+            return desc;
+        }
     }
 }
