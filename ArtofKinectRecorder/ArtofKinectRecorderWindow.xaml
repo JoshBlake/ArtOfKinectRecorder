@@ -162,6 +162,18 @@
                    Grid.Row="23"
                    Grid.Column="9"
                    Grid.ColumnSpan="3" />
+
+        <TextBlock Text="File FPS"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Right"
+                   Grid.Row="19"
+                   Grid.Column="13" />
+
+        <TextBlock x:Name="txtFileFPS"
+                   Grid.Row="19"
+                   Grid.Column="15"
+                   Grid.ColumnSpan="3" />
+        
         <Grid Grid.ColumnSpan="5"
               Grid.Column="31"
               Margin="1"
@@ -170,7 +182,8 @@
             <s:SurfaceCheckBox Content="Kinect"
                                Style="{DynamicResource GridSurfaceCheckBoxStyle}"
                                Foreground="{DynamicResource {x:Static s:SurfaceColors.ButtonForegroundBrushKey}}"
-                               x:Name="cbxKinect" />
+                               x:Name="cbxKinect"
+                               Click="cbxKinect_Click"/>
 
         </Grid>
 

@@ -34,7 +34,7 @@ namespace ArtofKinect.Common
         #region Fields
 
         List<string> _filesToLoad;
-        Queue<MotionFrame> _bufferedFrames;
+        List<MotionFrame> _bufferedFrames;
 
         Thread _playbackThread;
 
@@ -52,6 +52,7 @@ namespace ArtofKinect.Common
         SoundPlayer _soundPlayer;
 
         ZipFile _zipFile;
+        object _zipFileLock = new object();
 
         string descriptionFilename = "description.xaml";
 
@@ -112,6 +113,12 @@ namespace ArtofKinect.Common
 
         #endregion
 
+        #region FileFPS
+
+        public double FileFPS { get; private set; }
+
+        #endregion
+
         #endregion
 
         #region Events
@@ -126,6 +133,19 @@ namespace ArtofKinect.Common
                 return;
 
             StatusChanged(this, EventArgs.Empty);
+        }
+
+        #endregion
+
+        #region PlaybackEnded
+
+        public event EventHandler PlaybackEnded;
+
+        protected void OnPlaybackEnded()
+        {
+            if (PlaybackEnded == null)
+                return;
+            PlaybackEnded(this, EventArgs.Empty);
         }
 
         #endregion
@@ -152,7 +172,7 @@ namespace ArtofKinect.Common
         {
             _serializer = serializer;
             _filesToLoad = new List<string>();
-            _bufferedFrames = new Queue<MotionFrame>();
+            _bufferedFrames = new List<MotionFrame>();
 
             _loadingQueue = new WorkQueue<string>();
             _loadingQueue.Callback = LoadFrameWorker;
@@ -174,63 +194,73 @@ namespace ArtofKinect.Common
 
             if (!File.Exists(filename))
             {
-                throw new FileNotFoundException();
-            }
-
-            if (_zipFile != null)
-            {
-                _zipFile.Dispose();
-                _zipFile = null;
-            }
-
-            _zipFile = new ZipFile(filename);
-
-            if (!_zipFile.EntryFileNames.Contains(descriptionFilename))
-            {
                 Unload();
                 return;
             }
 
-            var frameFiles = _zipFile.EntryFileNames.Where(s => s.Substring(s.Length - 3, 3) == "mfx");
-
-            _filesToLoad = frameFiles.OrderBy(f => f).ToList();
-
-            if (_filesToLoad.Count == 0)
+            lock (_zipFileLock)
             {
-                Unload();
-                return;
-            }
-
-            if (_zipFile.EntryFileNames.Contains(audioFilename))
-            {
-                if (_audioStream != null)
+                if (_zipFile != null)
                 {
-                    _audioStream.Dispose();
-                    _audioStream = null;
+                    _zipFile.Dispose();
+                    _zipFile = null;
                 }
-                _audioStream = new MemoryStream();
-                _zipFile[audioFilename].Extract(_audioStream);
-                _audioStream.Position = 0;
-                _soundPlayer.LoadWavStream(_audioStream);
+
+                _zipFile = new ZipFile(filename);
+
+                if (!_zipFile.EntryFileNames.Contains(descriptionFilename))
+                {
+                    Unload();
+                    return;
+                }
+
+                var frameFiles = _zipFile.EntryFileNames.Where(s => s.Substring(s.Length - 3, 3) == "mfx");
+
+                _filesToLoad = frameFiles.OrderBy(f => f).ToList();
+
+                if (_filesToLoad.Count == 0)
+                {
+                    Unload();
+                    return;
+                }
+
+                if (_zipFile.EntryFileNames.Contains(audioFilename))
+                {
+                    if (_audioStream != null)
+                    {
+                        _audioStream.Dispose();
+                        _audioStream = null;
+                    }
+                    _audioStream = new MemoryStream();
+                    _zipFile[audioFilename].Extract(_audioStream);
+                    _audioStream.Position = 0;
+                    _soundPlayer.LoadWavStream(_audioStream);
+                }
+
+                using (var settingsStream = new MemoryStream())
+                {
+                    _zipFile[descriptionFilename].Extract(settingsStream);
+                    settingsStream.Position = 0;
+                    var description = PointCloudStreamDescription.Load(settingsStream);
+
+                    MinTimeUTC = description.RecordingStartDateTimeUTC;
+                    CurrentTimeUTC = MinTimeUTC;
+                    MaxTimeUTC = description.RecordingStopDateTimeUTC;
+
+                    int count = description.FrameCount;
+                    var span = MaxTimeUTC - MinTimeUTC;
+                    if (count > 0 && span.TotalSeconds > 0)
+                    {
+                        FileFPS = count / span.TotalSeconds;
+                    }
+                }
             }
 
-            using (var settingsStream = new MemoryStream())
-            {
-                _zipFile[descriptionFilename].Extract(settingsStream);
-                settingsStream.Position = 0;
-                var description = PointCloudStreamDescription.Load(settingsStream);
-
-                MinTimeUTC = description.RecordingStartDateTimeUTC;
-                CurrentTimeUTC = MinTimeUTC;
-                MaxTimeUTC = description.RecordingStopDateTimeUTC;
-                 
-            }
-
-            Seek(0);
             Status = PointCloudPlayerStatus.Stopped;
+            Seek(0);
         }
 
-        private void Unload()
+        public void Unload()
         {
             Status = PointCloudPlayerStatus.NotLoaded;
             Reset();
@@ -238,9 +268,11 @@ namespace ArtofKinect.Common
 
         public void Play()
         {
-            if (Status != PointCloudPlayerStatus.Playing && CurrentFrameIndex == 0)
+            if (Status != PointCloudPlayerStatus.Playing)
             {
-                _playbackStartUTC = DateTime.Now;
+                var playOffset = CurrentTimeUTC - MinTimeUTC;
+                _playbackStartUTC = DateTime.Now - playOffset;
+                _soundPlayer.Seek(playOffset);
             }
             Status = PointCloudPlayerStatus.Playing;
             _soundPlayer.Play();
@@ -248,22 +280,22 @@ namespace ArtofKinect.Common
 
         public void Stop()
         {
-            Status = PointCloudPlayerStatus.Stopped;
+            if (Status == PointCloudPlayerStatus.Playing)
+            {
+                Status = PointCloudPlayerStatus.Stopped;
+            }
             _soundPlayer.Stop();
         }
 
         public void Seek(int frameNumber)
         {
+            if (Status == PointCloudPlayerStatus.NotLoaded)
+            {
+                throw new InvalidOperationException("Player not loaded");
+            }
             if (frameNumber < 0 || frameNumber > MaxFrameIndex)
             {
-                if (frameNumber == 0)
-                    return;
                 throw new ArgumentOutOfRangeException("frameNumber");
-            }
-
-            if (Status == PointCloudPlayerStatus.Playing)
-            {
-                //TODO recalculate _playbackStartUTC
             }
 
             //TODO: intelligently reset buffer
@@ -276,10 +308,20 @@ namespace ArtofKinect.Common
 
             using (var stream = new MemoryStream())
             {
-                _zipFile[_filesToLoad[frameNumber]].Extract(stream);
+                lock (_zipFileLock)
+                {
+                    _zipFile[_filesToLoad[frameNumber]].Extract(stream);
+                }
                 stream.Position = 0;
                 MotionFrameHeader header = _serializer.DeserializeHeader(stream);
+
                 var timeOffset = header.TimeUTC - MinTimeUTC;
+
+                if (Status == PointCloudPlayerStatus.Playing)
+                {
+                    _playbackStartUTC = DateTime.Now - timeOffset;
+                }
+
                 _soundPlayer.Seek(timeOffset);
 
             }
@@ -302,6 +344,8 @@ namespace ArtofKinect.Common
 
             _filesToLoad.Clear();
 
+            _loadingQueue.ClearQueue();
+
             lock (_bufferedFrames)
             {
                 _bufferedFrames.Clear();
@@ -312,11 +356,13 @@ namespace ArtofKinect.Common
                 _audioStream.Dispose();
                 _audioStream = null;
             }
-
-            if (_zipFile != null)
+            lock (_zipFileLock)
             {
-                _zipFile.Dispose();
-                _zipFile = null;
+                if (_zipFile != null)
+                {
+                    _zipFile.Dispose();
+                    _zipFile = null;
+                }
             }
         }
 
@@ -372,13 +418,21 @@ namespace ArtofKinect.Common
 
         private void LoadFrameWorker(string filename)
         {
-            if (_zipFile == null)
-                return;
 
             MotionFrame frame = null;
             using (var stream = new MemoryStream())
             {
-                _zipFile[filename].Extract(stream);
+                lock (_zipFileLock)
+                {
+                    if (_zipFile != null)
+                    {
+                        _zipFile[filename].Extract(stream);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
                 stream.Position = 0;
                 frame = _serializer.Deserialize(stream);
             }
@@ -386,12 +440,12 @@ namespace ArtofKinect.Common
             {
                 throw new InvalidOperationException("MotionFrame " + filename + " not deserialized correctly");
             }
-            Trace.WriteLine("Buffering frame " + filename);
+            Debug.WriteLine("Buffering frame " + filename);
 
 
             lock (_bufferedFrames)
             {
-                _bufferedFrames.Enqueue(frame);
+                _bufferedFrames.Add(frame);
             }
         }
 
@@ -407,24 +461,26 @@ namespace ArtofKinect.Common
                 Status = PointCloudPlayerStatus.Stopped;
                 Seek(0);
                 _soundPlayer.Stop();
+                OnPlaybackEnded();
             }
 
-            var currentTime = DateTime.Now;
-            var timeOffset = currentTime - _playbackStartUTC;
-            _soundPlayer.Seek(timeOffset);
+            var timeOffset = DateTime.Now - _playbackStartUTC;
+
             var targetPlayerTime = MinTimeUTC + timeOffset;
 
             MotionFrame playFrame = null;
 
+            int lastFrameIndex = CurrentFrameIndex;
             lock (_bufferedFrames)
             {
                 while (_bufferedFrames.Count > 0)
                 {
-                    var frame = _bufferedFrames.Peek();
+                    var frame = _bufferedFrames.OrderBy(f => f.Id).First();
 
                     if (frame.TimeUTC <= targetPlayerTime)
                     {
-                        playFrame = _bufferedFrames.Dequeue();
+                        playFrame = frame;
+                        _bufferedFrames.Remove(frame);
                         CurrentFrameIndex++;
                     }
                     else
@@ -432,10 +488,11 @@ namespace ArtofKinect.Common
                         break;
                     }
                 }
-                if (_bufferedFrames.Count == 0)
-                {
-                    Trace.WriteLine("empty buffer");
-                }
+            }
+
+            if (CurrentFrameIndex - lastFrameIndex > 1)
+            {
+                Trace.WriteLine("Skipped a frame from " + lastFrameIndex + " to " + CurrentFrameIndex);
             }
 
             if (playFrame != null)
@@ -444,8 +501,17 @@ namespace ArtofKinect.Common
 
                 var offsetMS = (playFrame.TimeUTC - targetPlayerTime).TotalMilliseconds;
 
-                Trace.WriteLine("Playing frame " + CurrentFrameIndex + " id: " + playFrame.Id + " time offset: " + offsetMS.ToString("F4"));
+                Debug.WriteLine("Playing frame " + CurrentFrameIndex + " id: " + playFrame.Id + " time offset: " + offsetMS.ToString("F4"));
 
+                //_soundPlayer.Stop();
+                if (Math.Abs(offsetMS) > 100)
+                {
+                    var span = CurrentTimeUTC - MinTimeUTC;
+                    if (CurrentFrameIndex % 30 == 0)
+                        Trace.WriteLine("Reseeking audio to " + span.ToString());
+                    _soundPlayer.Seek(span);
+                }
+                //_soundPlayer.Play();
                 OnMotionFrameAvailable(playFrame);
             }
         }

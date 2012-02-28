@@ -46,8 +46,7 @@ namespace ArtofKinectRecorder
         int fpsCount;
         DateTime lastFPSCheck;
         
-        bool isRecordingOn = false;
-        bool isShowingSavedFrame = false;
+        bool isRecording = false;
 
         DepthCodeMotionFrameSerializer serializer;
 
@@ -91,11 +90,13 @@ namespace ArtofKinectRecorder
 
             VerifySettings();
 
-            UpdatePlayPauseIconVisibility();
+            UpdateButtonStates();
 
-            UpdateRecordingButtonVisibility();
+            InitConfiguration();
+            //InitSensor();
+            cbxKinect.IsChecked = false;
+            UpdateButtonStates();
 
-            InitSensor();
             InitSerializerAndPlayerSouce();
             pointCloudFrameViewer.Activate(currentConfiguration);
 
@@ -103,27 +104,45 @@ namespace ArtofKinectRecorder
 
             Application.Current.Exit += (s, e) =>
             {
-                
-                pointCloudFrameViewer.pointCloudImage.Dispose();
-                //pointCloudFrameViewer2.Deactivate();
-                //pointCloudFrameViewer2.pointCloudImage.Dispose();
-                if (playerSource != null)
-                {
-                    playerSource.Dispose();
-                    playerSource = null;
-                }
-                if (pointRecorder != null)
-                {
-                    pointRecorder.Dispose();
-                    pointRecorder = null;
-                }
-
-                if (sensorDevice != null)
-                {
-                    sensorDevice.Dispose();
-                    sensorDevice = null;
-                }
+                Cleanup();
             };
+        }
+
+        private void Cleanup()
+        {
+            if (pointCloudFrameViewer != null &&
+                pointCloudFrameViewer.pointCloudImage != null)
+            {
+                pointCloudFrameViewer.pointCloudImage.Dispose();
+            }
+
+            if (playerSource != null)
+            {
+                playerSource.Dispose();
+                playerSource = null;
+            }
+            if (pointRecorder != null)
+            {
+                pointRecorder.Dispose();
+                pointRecorder = null;
+            }
+
+            if (sensorDevice != null)
+            {
+                sensorDevice.Dispose();
+                sensorDevice = null;
+            }
+        }
+
+        private void InitConfiguration()
+        {
+            var config = new DeviceConfiguration();
+            config.DepthBufferFormat = DepthBufferFormats.Format320X240X16;
+            config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
+
+            //config.DepthBufferFormat = DepthBufferFormats.Format640X480X16;
+            //config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
+            currentConfiguration = config;
         }
 
         private void VerifySettings()
@@ -168,11 +187,29 @@ namespace ArtofKinectRecorder
             playerSource = new PointCloudPlayerSource(serializer);
             playerSource.MotionFrameAvailable += new EventHandler<MotionFrameAvailableEventArgs>(playerSource_MotionFrameAvailable);
             playerSource.StatusChanged += new EventHandler(playerSource_StatusChanged);
+            playerSource.PlaybackEnded += new EventHandler(playerSource_PlaybackEnded);
 
             pointRecorder = new PointCloudStreamRecorder(serializer);
 
-            string filename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
-            playerSource.Load(filename);
+        }
+
+        void playerSource_PlaybackEnded(object sender, EventArgs e)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    playerSource_PlaybackEnded(sender, e);
+                });
+                return;
+            }
+            if (isPlaying)
+            {
+                txtFileFPS.Text = "";
+                isPlaying = false;
+                UpdateButtonStates();
+            }
+            playerSource.Unload();
         }
 
         void playerSource_StatusChanged(object sender, EventArgs e)
@@ -185,30 +222,14 @@ namespace ArtofKinectRecorder
                 });
                 return;
             }
-            if (playerSource.Status != PointCloudPlayerStatus.Playing && isPlaying)
-            {
-                isShowingSavedFrame = false;
-
-                if (sensorDevice == null)
-                {
-                    InitSensor();
-                }
-                isPlaying = false;
-                UpdatePlayPauseIconVisibility();
-            }
         }
 
         private void InitSensor()
         {
-            var config = new DeviceConfiguration();
-            config.DepthBufferFormat = DepthBufferFormats.Format640X480X16;
-            config.VideoBufferFormat = ImageBufferFormats.Format1280X960X32;
-            currentConfiguration = config;
-
             sensorDevice = new KinectSdkDevice();
             sensorDevice.CompositeFrameAvailable += new CompositeFrameAvailableEventHandler(device_CompositeFrameAvailable);
 
-            sensorDevice.Initialize(config);
+            sensorDevice.Initialize(currentConfiguration);
             sensorDevice.SetTiltAngle(0);
         }
 
@@ -229,12 +250,12 @@ namespace ArtofKinectRecorder
 
         void device_CompositeFrameAvailable(object sender, CompositeFrameAvailableEventArgs e)
         {
-            if (isRecordingOn)
+            if (isRecording)
             {
                 pointRecorder.AddFrame(e.MotionFrame);
             }
 
-            if (!isShowingSavedFrame)
+            if (!isPlaying)
             {
                 DisplayFrame(e.MotionFrame);
             }
@@ -279,51 +300,38 @@ namespace ArtofKinectRecorder
             }
         }
 
-        private void LoadFrame(string filename)
-        {
-            if (!File.Exists(filename))
-            {
-                return;
-            }
-            isShowingSavedFrame = true;
-            var frame = serializer.Load(filename);
-            
-            DisplayFrame(frame);
-        }
-        
         private void StartRecording()
         {
-            _currentFilename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
-            pointRecorder.StartRecording(_currentFilename, Settings.ScratchDirectory);
-           
-            StopPlayback();
-            isRecordingOn = true;
+            playerSource.Unload();
+
+            string filename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
+            pointRecorder.StartRecording(filename, Settings.ScratchDirectory);
+
+            playerSource.Unload();
+            isRecording = true;
             isPlaying = false;
-            
-            UpdateRecordingButtonVisibility();
+
+            UpdateButtonStates();
         }
 
         private void StopRecording()
         {
-            isRecordingOn = false;
-            UpdateRecordingButtonVisibility();
+            isRecording = false;
+            UpdateButtonStates();
 
             pointRecorder.StopRecording();
-
-            //playerSource.Load("Recording/", "frame*.mfx", "Recording/kinectaudio.wav");
         }
 
         private void StartPlayback()
         {
             StopSensor();
 
-            isShowingSavedFrame = true;
-
             if (playerSource.Status == PointCloudPlayerStatus.NotLoaded)
             {
                 string filename = System.IO.Path.Combine(Settings.RecordingsDirectory, _currentFilename);
                 playerSource.Load(filename);
             }
+            txtFileFPS.Text = playerSource.FileFPS.ToString("F2");
             playerSource.Play();
         }
         
@@ -338,44 +346,56 @@ namespace ArtofKinectRecorder
         
         private void btnPlayPause_Click(object sender, RoutedEventArgs e)
         {
-            isPlaying = !isPlaying;
-            if (isRecordingOn)
+            if (isRecording)
             {
                 StopRecording();
-            }
-            else if (isPlaying)
-            {                
-                StartPlayback();
+                isPlaying = false;
             }
             else
             {
-                StopPlayback();
+                isPlaying = !isPlaying;
+                if (isPlaying)
+                {
+                    StartPlayback();
+                }
+                else
+                {
+                    StopPlayback();
+                }
             }
-            UpdatePlayPauseIconVisibility();
+            UpdateButtonStates();
         }
 
-        private void UpdatePlayPauseIconVisibility()
+        private void UpdateButtonStates()
         {
-            if (isPlaying)
+            if (isPlaying || isRecording)
             {
+                btnPlayPause.IsEnabled = true;
                 gridPlay.Visibility = System.Windows.Visibility.Collapsed;
                 gridPause.Visibility = System.Windows.Visibility.Visible;
+                cbxKinect.IsEnabled = false;
+                btnRecord.IsEnabled = false;
             }
             else
             {
                 gridPlay.Visibility = System.Windows.Visibility.Visible;
                 gridPause.Visibility = System.Windows.Visibility.Collapsed;
+                cbxKinect.IsEnabled = true;
+                
+                bool isKinectChecked = cbxKinect.IsChecked.Value;
+                if (isKinectChecked)
+                {
+                    btnRecord.IsEnabled = true;
+                    btnPlayPause.IsEnabled = false;
+                }
+                else
+                {
+                    btnRecord.IsEnabled = false;
+                    btnPlayPause.IsEnabled = true;
+                }
             }
-        }
-
-        private void UpdateRecordingButtonVisibility()
-        {
-            if (isRecordingOn)
+            if (isRecording)
             {
-                gridPause.Visibility = System.Windows.Visibility.Visible;
-                gridPlay.Visibility = System.Windows.Visibility.Collapsed;
-
-                btnRecord.IsEnabled = false;
                 btnNext.IsEnabled = false;
                 btnPrevious.IsEnabled = false;
                 btnFastForward.IsEnabled = false;
@@ -383,15 +403,14 @@ namespace ArtofKinectRecorder
             }
             else
             {
-                btnRecord.IsEnabled = true;
                 btnNext.IsEnabled = true;
                 btnPrevious.IsEnabled = true;
                 btnFastForward.IsEnabled = true;
                 btnRewind.IsEnabled = true;
-                UpdatePlayPauseIconVisibility();
             }
-        }
 
+            
+        }
 
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
@@ -399,19 +418,37 @@ namespace ArtofKinectRecorder
             this.Close();
         }
 
-        #endregion
-
         private void btnPrevious_Click(object sender, RoutedEventArgs e)
         {
-            playerSource.Seek(0);
+            if (playerSource.Status != PointCloudPlayerStatus.NotLoaded)
+            {
+                playerSource.Seek(0);
+            }
         }
 
         private void btnRecord_Click(object sender, RoutedEventArgs e)
         {
-            if (!isRecordingOn)
+            if (!isRecording)
             {
                 StartRecording();
             }
         }
+
+        private void cbxKinect_Click(object sender, RoutedEventArgs e)
+        {
+            bool isChecked = cbxKinect.IsChecked.Value;
+            if (isChecked)
+            {
+                playerSource.Unload();
+                InitSensor();
+            }
+            else
+            {
+                StopSensor();
+            }
+            UpdateButtonStates();
+        }
+
+        #endregion
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using InfoStrat.MotionFx;
 using Ionic.Zip;
+using System.Diagnostics;
 
 namespace ArtofKinect.Common
 {
@@ -12,9 +13,12 @@ namespace ArtofKinect.Common
     {
         #region Fields
 
+        private const int BlockSize = 65536;  // Size of block used to read/write files.
+
         string _descriptionFilename = "description.xaml";
 
         PointCloudStreamDescription _description;
+        object _descriptionLock = new object();
 
         IMotionFrameSerializer _serializer;
 
@@ -24,7 +28,7 @@ namespace ArtofKinect.Common
         string _scratchDirectory;
 
         SoundRecording soundRecording;
-        
+
         #endregion
 
         #region Properties
@@ -124,7 +128,7 @@ namespace ArtofKinect.Common
         {
             _frameQueue = new WorkQueue<MotionFrame>();
             _frameQueue.Callback = ProcessFrame;
-            _frameQueue.MaxQueueLength = 5;
+            _frameQueue.MaxQueueLength = 1;
         }
 
         private void ShutdownFrameQueue()
@@ -138,9 +142,13 @@ namespace ArtofKinect.Common
 
         private void ZipAllFiles(string ScratchDirectory, string _filename)
         {
+            if (File.Exists(_filename))
+            {
+                File.Delete(_filename);
+            }
             using (var zip = new ZipFile(_filename))
             {
-                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
+                zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
 
                 var files = Directory.EnumerateFiles(ScratchDirectory);
 
@@ -152,7 +160,10 @@ namespace ArtofKinect.Common
         private void SaveDescription()
         {
             string filename = Path.Combine(_scratchDirectory, _descriptionFilename);
-            PointCloudStreamDescription.Save(filename, _description);
+            lock (_descriptionLock)
+            {
+                PointCloudStreamDescription.Save(filename, _description);
+            }
         }
 
         void ProcessFrame(MotionFrame frame)
@@ -166,9 +177,16 @@ namespace ArtofKinect.Common
 
             string filename = "frame" + currentFrameId.ToString("D8") + ".mfx";
             filename = Path.Combine(_scratchDirectory, filename);
-           
+
             var bytes = _serializer.Serialize(frame);
-            File.WriteAllBytes(filename, bytes);
+
+            using (var FSFile = new FileStream(filename, FileMode.Create, FileAccess.Write,
+                    FileShare.None, BlockSize, FileOptions.None))
+            {
+                FSFile.Write(bytes, 0, bytes.Length);
+                FSFile.Close();
+                //File.WriteAllBytes(filename, bytes);
+            }
 
             currentFrameId++;
             _description.FrameCount = currentFrameId;
