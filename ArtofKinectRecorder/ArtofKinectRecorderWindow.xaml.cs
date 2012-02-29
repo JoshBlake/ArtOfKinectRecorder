@@ -26,6 +26,7 @@ using System.Windows.Threading;
 using System.Threading;
 using ArtofKinectRecorder.Views;
 using System.Diagnostics;
+using Microsoft.Kinect;
 
 namespace ArtofKinectRecorder
 {
@@ -102,10 +103,28 @@ namespace ArtofKinectRecorder
 
             lastFPSCheck = DateTime.Now;
 
+            KinectSensor.KinectSensors.StatusChanged += new EventHandler<StatusChangedEventArgs>(KinectSensors_StatusChanged);
+
             Application.Current.Exit += (s, e) =>
             {
                 Cleanup();
             };
+        }
+
+        void KinectSensors_StatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            KinectSensor sensor = (from sensorToCheck in KinectSensor.KinectSensors where sensorToCheck.Status == KinectStatus.Connected select sensorToCheck).FirstOrDefault();
+            if (sensor != null)
+            {
+                cbxKinect.IsEnabled = true;
+            }
+            else
+            {
+                StopSensor();
+                cbxKinect.IsChecked = false;
+                cbxKinect.IsEnabled = false;
+            }
+            UpdateButtonStates();
         }
 
         private void Cleanup()
@@ -189,8 +208,16 @@ namespace ArtofKinectRecorder
             playerSource.StatusChanged += new EventHandler(playerSource_StatusChanged);
             playerSource.PlaybackEnded += new EventHandler(playerSource_PlaybackEnded);
 
-            pointRecorder = new PointCloudStreamRecorder(serializer);
-
+            KinectSensor sensor = (from sensorToCheck in KinectSensor.KinectSensors where sensorToCheck.Status == KinectStatus.Connected select sensorToCheck).FirstOrDefault();
+            if (sensor != null)
+            {
+                pointRecorder = new PointCloudStreamRecorder(serializer);
+            }
+            else
+            {
+                cbxKinect.IsEnabled = false;
+                cbxKinect.IsChecked = false;
+            }
         }
 
         void playerSource_PlaybackEnded(object sender, EventArgs e)
