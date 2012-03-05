@@ -268,6 +268,9 @@ namespace ArtofKinect.Common
 
         public void Play()
         {
+            if (Status == PointCloudPlayerStatus.NotLoaded)
+                return;
+
             if (Status != PointCloudPlayerStatus.Playing)
             {
                 var playOffset = CurrentTimeUTC - MinTimeUTC;
@@ -280,6 +283,9 @@ namespace ArtofKinect.Common
 
         public void Stop()
         {
+            if (Status == PointCloudPlayerStatus.NotLoaded)
+                return;
+
             if (Status == PointCloudPlayerStatus.Playing)
             {
                 Status = PointCloudPlayerStatus.Stopped;
